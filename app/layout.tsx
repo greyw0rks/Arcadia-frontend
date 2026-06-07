@@ -4,14 +4,19 @@ import "./mobile.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Arcadia — stake-to-play games on Celo",
-  description: "An arcade of skill games where your stake rides a live multiplier. Built on Celo.",
+  title: "Arcadia — stake-to-play games Onchain",
+  description: "An arcade of skill games where your stake rides a live multiplier. Built onchain.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
       { url: "/logo.svg", type: "image/svg+xml" },
     ],
     apple: "/logo.svg",
+  },
+  other: {
+    // Talent Protocol verification (update with your actual meta tag)
+    "talentapp:project_verification":
+      "e9fe66e1565442422ba268d40f55c48dfdd3d03df673083108e93cb734e7450bd510dbc88ac2147957f584848222f449bf709d54d438862782de61ae9b768756",
   },
 };
 
