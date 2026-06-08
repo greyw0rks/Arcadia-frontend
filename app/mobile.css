@@ -227,6 +227,7 @@
     padding: 16px 20px;
     margin: 12px 0;
     transition: all 0.2s ease;
+    color: var(--mobile-text-primary);
   }
 
   .option::before,
