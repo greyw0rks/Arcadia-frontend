@@ -28,11 +28,13 @@ const nextConfig = {
   experimental: {
     // Pre-optimize large packages.
     optimizePackageImports: ["@rainbow-me/rainbowkit", "wagmi", "viem"],
-    // NOTE: turbopackFileSystemCacheForDev (experimental persistent on-disk dev cache) was removed.
-    // It held a stale module graph for dynamically-imported packages like @stacks/connect across
-    // restarts, surfacing as "Module … was instantiated … but the module factory is not available".
-    // Faster cold compiles weren't worth the recurring corruption. Re-evaluate once it's stable.
   },
+
+  // NOTE: dev + build both pin --webpack (see package.json scripts). Turbopack (the Next 16 default
+  // for BOTH dev and build) miscompiles @stacks/connect's dynamic-import chunk, throwing at runtime
+  // with "Module … was instantiated … but the module factory is not available" — no popup, dead
+  // connect button. It reproduced in dev AND in Vercel production builds. Webpack bundles the same
+  // code cleanly. Revisit Turbopack once the chunk-instantiation bug is fixed upstream.
 };
 
 module.exports = nextConfig;
