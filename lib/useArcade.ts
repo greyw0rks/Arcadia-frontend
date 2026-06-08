@@ -67,6 +67,7 @@ function useEvmArcade(token: CeloToken): ArcadeApi {
       abi: ERC20_ABI,
       functionName: "approve",
       args: [arcadeAddress, stakeWei],
+      type: "legacy", // MiniPay requires legacy transactions (no EIP-1559)
     });
     await publicClient.waitForTransactionReceipt({ hash });
   }
@@ -81,6 +82,7 @@ function useEvmArcade(token: CeloToken): ArcadeApi {
         abi: ARCADE_ABI,
         functionName: "startSession",
         args: [sessionId, stakeWei, maxRounds],
+        type: "legacy", // MiniPay requires legacy transactions (no EIP-1559)
       });
       await publicClient.waitForTransactionReceipt({ hash });
     },
@@ -91,6 +93,7 @@ function useEvmArcade(token: CeloToken): ArcadeApi {
         abi: ARCADE_ABI,
         functionName: "settle",
         args: [sessionId, BigInt(multiplierBp), signature],
+        type: "legacy", // MiniPay requires legacy transactions (no EIP-1559)
       });
       await publicClient.waitForTransactionReceipt({ hash });
     },
@@ -101,6 +104,7 @@ function useEvmArcade(token: CeloToken): ArcadeApi {
         abi: ARCADE_ABI,
         functionName: "cancelExpired",
         args: [sessionId],
+        type: "legacy", // MiniPay requires legacy transactions (no EIP-1559)
       });
       await publicClient.waitForTransactionReceipt({ hash });
     },

@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useAccount, useConnect } from "wagmi";
+import { injected } from "wagmi/connectors";
 import { useChain } from "../lib/chainContext";
 import { useStacksWallet } from "../lib/stacksWallet";
 import { CHAINS, CELO_TOKENS, type ChainId, type CeloToken } from "../lib/contract";
@@ -92,6 +95,43 @@ function StacksConnectButton() {
   );
 }
 
+// Detects MiniPay, auto-connects via injected connector, and shows a compact address pill.
+// Falls back to the standard RainbowKit button for normal browser sessions.
+function CeloConnectButton() {
+  const [isMiniPay, setIsMiniPay] = useState(false);
+  const { address, isConnected } = useAccount();
+  const { connect } = useConnect();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && (window.ethereum as any)?.isMiniPay) {
+      setIsMiniPay(true);
+      if (!isConnected) {
+        connect({ connector: injected({ target: "metaMask" }) });
+      }
+    }
+  }, [isConnected, connect]);
+
+  if (isMiniPay && isConnected && address) {
+    return (
+      <div
+        style={{
+          padding: "8px 14px",
+          border: "3px solid #000",
+          background: "#fff",
+          fontWeight: 800,
+          fontFamily: "inherit",
+          fontSize: "14px",
+        }}
+      >
+        {address.slice(0, 6)}…{address.slice(-4)}
+      </div>
+    );
+  }
+
+  // Not MiniPay (or still connecting) — show RainbowKit button as normal.
+  return <ConnectButton showBalance={false} chainStatus="icon" />;
+}
+
 export function ConnectControl() {
   const { chain } = useChain();
   return (
@@ -101,7 +141,7 @@ export function ConnectControl() {
       {chain === "stacks" ? (
         <StacksConnectButton />
       ) : (
-        <ConnectButton showBalance={false} chainStatus="icon" />
+        <CeloConnectButton />
       )}
     </div>
   );
