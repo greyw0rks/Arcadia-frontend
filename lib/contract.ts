@@ -85,6 +85,19 @@ export async function stacksNetwork() {
     : new StacksTestnet({ url: STACKS_API_URL });
 }
 
+// Read-only network for browser-side contract reads. Points at the same-origin /hiro proxy (see
+// app/hiro/[...path]/route.ts) so calls avoid Hiro's CORS-on-429 and benefit from the server-side
+// API key. Wallet/tx calls keep using stacksNetwork() — those go through the wallet extension, not a
+// browser fetch, so they aren't subject to the same rate limit or CORS.
+export async function stacksReadNetwork() {
+  const { StacksTestnet, StacksMainnet } = await import("@stacks/network");
+  const url =
+    typeof window !== "undefined" ? `${window.location.origin}/hiro` : STACKS_API_URL;
+  return STACKS_NETWORK_NAME === "mainnet"
+    ? new StacksMainnet({ url })
+    : new StacksTestnet({ url });
+}
+
 export const STACKS_EXPLORER =
   STACKS_NETWORK_NAME === "mainnet"
     ? "https://explorer.hiro.so"
