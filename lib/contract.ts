@@ -146,6 +146,11 @@ const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000" as `0x${string
 const MAINNET_USDC = "0xcebA9300f2b948710d2653dD7B07f33A8B32118C";
 const MAINNET_USDT = "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e";
 
+// Mainnet arcade addresses — hardcoded since these are public, immutable, and env vars
+// are unreliable at Next.js build time on Vercel for NEXT_PUBLIC_ vars.
+const MAINNET_ARCADE_USDC = "0x5dF7e848308dB212f5ABeD76d5749ea79668F027";
+const MAINNET_ARCADE_USDT = "0x3ae4aee0D6e8Fd7f3B038171Dc920034779Ab391";
+
 function envAddr(name: string, fallback: string): `0x${string}` {
   return (process.env[name] ?? fallback) as `0x${string}`;
 }
@@ -166,7 +171,7 @@ export const CELO_TOKENS: Record<CeloToken, CeloTokenMeta> = {
     label: "USDC",
     symbol: "USDC",
     decimals: 6,
-    arcadeAddress: envAddr("NEXT_PUBLIC_ARCADE_ADDRESS_USDC", ZERO_ADDRESS),
+    arcadeAddress: envAddr("NEXT_PUBLIC_ARCADE_ADDRESS_USDC", MAINNET_ARCADE_USDC),
     tokenAddress: envAddr(
       "NEXT_PUBLIC_TOKEN_ADDRESS_USDC",
       CELO_NETWORK_NAME === "mainnet" ? MAINNET_USDC : ZERO_ADDRESS
@@ -177,7 +182,7 @@ export const CELO_TOKENS: Record<CeloToken, CeloTokenMeta> = {
     label: "USDT",
     symbol: "USDT",
     decimals: 6,
-    arcadeAddress: envAddr("NEXT_PUBLIC_ARCADE_ADDRESS_USDT", ZERO_ADDRESS),
+    arcadeAddress: envAddr("NEXT_PUBLIC_ARCADE_ADDRESS_USDT", MAINNET_ARCADE_USDT),
     tokenAddress: envAddr(
       "NEXT_PUBLIC_TOKEN_ADDRESS_USDT",
       CELO_NETWORK_NAME === "mainnet" ? MAINNET_USDT : ZERO_ADDRESS
