@@ -15,27 +15,26 @@ export function useStacksWallet(): StacksWallet {
   const sessionRef = useRef<any>(null);
 
   useEffect(() => {
+    // Pre-load @stacks/connect on mount so connect() can call showConnect
+    // synchronously inside the click handler — browsers block popups that are
+    // opened after an awaited import (the user-gesture context is gone by then).
     import("@stacks/connect").then((mod) => {
       modRef.current = mod;
-      const appConfig = new mod.AppConfig(["store_write"]);
-      const userSession = new mod.UserSession({ appConfig });
+      const { AppConfig, UserSession } = mod;
+      const appConfig = new AppConfig(["store_write"]);
+      const userSession = new UserSession({ appConfig });
       sessionRef.current = userSession;
-      console.log("[stacksWallet] module loaded, session ready");
 
       if (userSession.isSignInPending()) {
-        userSession.handlePendingSignIn().then(() => {
-          setAddress(getAddress(userSession));
-        });
+        userSession.handlePendingSignIn().then(() => setAddress(getAddress(userSession)));
       } else {
         setAddress(getAddress(userSession));
       }
-    }).catch((e) => {
-      console.error("[stacksWallet] failed to load @stacks/connect:", e);
-    });
+    }).catch(console.error);
   }, []);
 
   function getAddress(userSession: any): string | null {
-    if (!userSession.isUserSignedIn()) return null;
+    if (!userSession?.isUserSignedIn()) return null;
     const data = userSession.loadUserData();
     return STACKS_NETWORK_NAME === "mainnet"
       ? data.profile.stxAddress.mainnet
@@ -43,14 +42,9 @@ export function useStacksWallet(): StacksWallet {
   }
 
   const connect = useCallback(() => {
-    console.log("[stacksWallet] connect clicked, mod:", !!modRef.current, "session:", !!sessionRef.current);
     const mod = modRef.current;
     const userSession = sessionRef.current;
-    if (!mod || !userSession) {
-      console.error("[stacksWallet] module not loaded yet — cannot open popup");
-      return;
-    }
-    console.log("[stacksWallet] calling showConnect...");
+    if (!mod || !userSession) return;
     mod.showConnect({
       userSession,
       appDetails: {
@@ -59,17 +53,12 @@ export function useStacksWallet(): StacksWallet {
           ? `${window.location.origin}/favicon.ico`
           : "/favicon.ico",
       },
-      onFinish: () => {
-        console.log("[stacksWallet] connected!");
-        setAddress(getAddress(userSession));
-      },
+      onFinish: () => setAddress(getAddress(userSession)),
     });
   }, []);
 
   const disconnect = useCallback(() => {
-    const userSession = sessionRef.current;
-    if (!userSession) return;
-    userSession.signUserOut();
+    sessionRef.current?.signUserOut();
     setAddress(null);
   }, []);
 

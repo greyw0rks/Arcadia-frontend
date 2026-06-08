@@ -70,6 +70,7 @@ export function TokenSwitcher() {
   );
 }
 
+
 function StacksConnectButton() {
   const { address, isConnected, connect, disconnect } = useStacksWallet();
   const short = address ? `${address.slice(0, 5)}…${address.slice(-4)}` : "";
