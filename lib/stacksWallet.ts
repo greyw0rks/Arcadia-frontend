@@ -15,12 +15,12 @@ export function useStacksWallet(): StacksWallet {
   const sessionRef = useRef<any>(null);
 
   useEffect(() => {
-    // Pre-load module on mount so connect() can call showConnect synchronously
     import("@stacks/connect").then((mod) => {
       modRef.current = mod;
       const appConfig = new mod.AppConfig(["store_write"]);
       const userSession = new mod.UserSession({ appConfig });
       sessionRef.current = userSession;
+      console.log("[stacksWallet] module loaded, session ready");
 
       if (userSession.isSignInPending()) {
         userSession.handlePendingSignIn().then(() => {
@@ -29,7 +29,9 @@ export function useStacksWallet(): StacksWallet {
       } else {
         setAddress(getAddress(userSession));
       }
-    }).catch(() => {});
+    }).catch((e) => {
+      console.error("[stacksWallet] failed to load @stacks/connect:", e);
+    });
   }, []);
 
   function getAddress(userSession: any): string | null {
@@ -41,10 +43,14 @@ export function useStacksWallet(): StacksWallet {
   }
 
   const connect = useCallback(() => {
+    console.log("[stacksWallet] connect clicked, mod:", !!modRef.current, "session:", !!sessionRef.current);
     const mod = modRef.current;
     const userSession = sessionRef.current;
-    if (!mod || !userSession) return;
-    // Called synchronously from click — popup will open
+    if (!mod || !userSession) {
+      console.error("[stacksWallet] module not loaded yet — cannot open popup");
+      return;
+    }
+    console.log("[stacksWallet] calling showConnect...");
     mod.showConnect({
       userSession,
       appDetails: {
@@ -53,7 +59,10 @@ export function useStacksWallet(): StacksWallet {
           ? `${window.location.origin}/favicon.ico`
           : "/favicon.ico",
       },
-      onFinish: () => setAddress(getAddress(userSession)),
+      onFinish: () => {
+        console.log("[stacksWallet] connected!");
+        setAddress(getAddress(userSession));
+      },
     });
   }, []);
 
