@@ -28,9 +28,10 @@ const nextConfig = {
   experimental: {
     // Pre-optimize large packages.
     optimizePackageImports: ["@rainbow-me/rainbowkit", "wagmi", "viem"],
-    // Persist Turbopack compiler artifacts to disk so dev compiles are fast across restarts
-    // (notably helpful here — Next flags this project's filesystem as slow under WSL2).
-    turbopackFileSystemCacheForDev: true,
+    // NOTE: turbopackFileSystemCacheForDev (experimental persistent on-disk dev cache) was removed.
+    // It held a stale module graph for dynamically-imported packages like @stacks/connect across
+    // restarts, surfacing as "Module … was instantiated … but the module factory is not available".
+    // Faster cold compiles weren't worth the recurring corruption. Re-evaluate once it's stable.
   },
 };
 
