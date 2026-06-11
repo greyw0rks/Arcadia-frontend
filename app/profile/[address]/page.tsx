@@ -9,6 +9,7 @@ interface UserProfile {
   address: string;
   username: string | null;
   avatar: string | null;
+  unit: 'USDm' | 'STX';
   stats: {
     totalGamesPlayed: number;
     totalGamesWon: number;
@@ -46,35 +47,38 @@ export default function ProfilePage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/profile/${profileAddress}`);
+      if (!res.ok) throw new Error(`profile request failed (${res.status})`);
       const data = await res.json();
       setProfile(data.profile);
       setUsername(data.profile?.username || '');
       setAvatar(data.profile?.avatar || '');
     } catch (error) {
-      // Mock data for now
-      setProfile(generateMockProfile());
+      console.error('Failed to load profile:', error);
+      // No mock fallback: show a real (empty) profile derived from the address.
+      setProfile(emptyProfile(profileAddress));
     } finally {
       setLoading(false);
     }
   }
 
-  function generateMockProfile(): UserProfile {
+  function emptyProfile(address: string): UserProfile {
     return {
-      address: profileAddress,
+      address,
       username: null,
-      avatar: '🎮',
+      avatar: null,
+      unit: address.startsWith('0x') ? 'USDm' : 'STX',
       stats: {
-        totalGamesPlayed: 42,
-        totalGamesWon: 28,
-        totalStaked: 250,
-        totalWinnings: 312,
-        totalLosses: 188,
-        highestMultiplier: 18000,
-        currentStreak: 3,
-        longestStreak: 7,
-        favoriteGame: 'Trivia Rush',
+        totalGamesPlayed: 0,
+        totalGamesWon: 0,
+        totalStaked: 0,
+        totalWinnings: 0,
+        totalLosses: 0,
+        highestMultiplier: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+        favoriteGame: null,
       },
-      achievements: ['first_win', 'streak_5', 'high_roller'],
+      achievements: [],
       recentGames: [],
     };
   }
@@ -115,7 +119,7 @@ export default function ProfilePage() {
     ? Math.round((profile.stats.totalGamesWon / profile.stats.totalGamesPlayed) * 100)
     : 0;
 
-  const netProfit = profile.stats.totalWinnings - profile.stats.totalStaked;
+  const netProfit = Math.round((profile.stats.totalWinnings - profile.stats.totalStaked) * 100) / 100;
 
   return (
     <div className="container">
@@ -204,8 +208,8 @@ export default function ProfilePage() {
           <StatCard icon="🎮" label="Games Played" value={profile.stats.totalGamesPlayed} />
           <StatCard icon="🏆" label="Games Won" value={profile.stats.totalGamesWon} />
           <StatCard icon="📈" label="Win Rate" value={`${winRate}%`} />
-          <StatCard icon="💰" label="Total Winnings" value={`${profile.stats.totalWinnings} cUSD`} />
-          <StatCard icon="📊" label="Net Profit" value={`${netProfit > 0 ? '+' : ''}${netProfit} cUSD`} color={netProfit > 0 ? 'var(--green)' : 'var(--red)'} />
+          <StatCard icon="💰" label="Total Winnings" value={`${profile.stats.totalWinnings} ${profile.unit}`} />
+          <StatCard icon="📊" label="Net Profit" value={`${netProfit > 0 ? '+' : ''}${netProfit} ${profile.unit}`} color={netProfit > 0 ? 'var(--green)' : 'var(--red)'} />
           <StatCard icon="🚀" label="Highest Multiplier" value={`${(profile.stats.highestMultiplier / 10000).toFixed(1)}x`} />
           <StatCard icon="🔥" label="Current Streak" value={profile.stats.currentStreak} />
           <StatCard icon="⭐" label="Longest Streak" value={profile.stats.longestStreak} />

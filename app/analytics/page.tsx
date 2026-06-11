@@ -32,41 +32,28 @@ export default function AnalyticsPage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/analytics?range=${timeRange}`);
+      if (!res.ok) throw new Error(`analytics request failed (${res.status})`);
       const data = await res.json();
       setAnalytics(data);
     } catch (error) {
-      // Mock data for now
-      setAnalytics(generateMockAnalytics());
+      console.error('Failed to load analytics:', error);
+      setAnalytics(emptyAnalytics());
     } finally {
       setLoading(false);
     }
   }
 
-  function generateMockAnalytics(): AnalyticsData {
+  function emptyAnalytics(): AnalyticsData {
     return {
-      totalUsers: 1247,
-      totalGames: 8934,
-      totalVolume: 45678,
-      totalPayout: 42341,
-      activeUsers24h: 234,
-      activeUsers7d: 892,
-      popularGames: [
-        { id: 'trivia', name: 'Trivia Rush', plays: 2341 },
-        { id: 'geo', name: 'GeoGuess', plays: 1876 },
-        { id: 'math', name: 'Math Sprint', plays: 1543 },
-        { id: 'word', name: 'Letter League', plays: 1234 },
-        { id: 'truefalse', name: 'True/False Blitz', plays: 987 },
-      ],
-      recentActivity: Array.from({ length: 10 }, (_, i) => ({
-        type: Math.random() > 0.5 ? 'win' : 'loss',
-        player: `0x${Math.random().toString(16).slice(2, 10)}`,
-        amount: Math.floor(Math.random() * 50) + 5,
-        timestamp: Date.now() - i * 60000,
-      })),
-      volumeChart: Array.from({ length: 7 }, (_, i) => ({
-        date: new Date(Date.now() - (6 - i) * 86400000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        volume: Math.floor(Math.random() * 5000) + 2000,
-      })),
+      totalUsers: 0,
+      totalGames: 0,
+      totalVolume: 0,
+      totalPayout: 0,
+      activeUsers24h: 0,
+      activeUsers7d: 0,
+      popularGames: [],
+      recentActivity: [],
+      volumeChart: [],
     };
   }
 
@@ -97,7 +84,9 @@ export default function AnalyticsPage() {
   }
 
   const houseProfit = analytics.totalVolume - analytics.totalPayout;
-  const houseEdge = ((houseProfit / analytics.totalVolume) * 100).toFixed(2);
+  const houseEdge = analytics.totalVolume > 0
+    ? ((houseProfit / analytics.totalVolume) * 100).toFixed(2)
+    : '0.00';
 
   return (
     <div className="container">
@@ -151,15 +140,16 @@ export default function AnalyticsPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: 40 }}>
           <MetricCard icon="👥" label="Total Users" value={analytics.totalUsers.toLocaleString()} />
           <MetricCard icon="🎮" label="Total Games" value={analytics.totalGames.toLocaleString()} />
-          <MetricCard icon="💰" label="Total Volume" value={`${analytics.totalVolume.toLocaleString()} cUSD`} />
-          <MetricCard icon="💸" label="Total Payout" value={`${analytics.totalPayout.toLocaleString()} cUSD`} />
+          <MetricCard icon="💰" label="Total Volume" value={`${analytics.totalVolume.toLocaleString()} USDm`} />
+          <MetricCard icon="💸" label="Total Payout" value={`${analytics.totalPayout.toLocaleString()} USDm`} />
           <MetricCard icon="🔥" label="Active (24h)" value={analytics.activeUsers24h.toLocaleString()} />
           <MetricCard icon="📈" label="Active (7d)" value={analytics.activeUsers7d.toLocaleString()} />
-          <MetricCard icon="🏦" label="House Profit" value={`${houseProfit.toLocaleString()} cUSD`} color="var(--green)" />
+          <MetricCard icon="🏦" label="House Profit" value={`${houseProfit.toLocaleString()} USDm`} color="var(--green)" />
           <MetricCard icon="📊" label="House Edge" value={`${houseEdge}%`} />
         </div>
 
         {/* Popular Games */}
+        {analytics.popularGames.length > 0 && (
         <div style={{ marginBottom: 40 }}>
           <h2 style={{ fontSize: '28px', marginBottom: 20 }}>🎯 Popular Games</h2>
           <div style={{ display: 'grid', gap: '12px' }}>
@@ -189,8 +179,10 @@ export default function AnalyticsPage() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Volume Chart */}
+        {analytics.volumeChart.length > 0 && (
         <div style={{ marginBottom: 40 }}>
           <h2 style={{ fontSize: '28px', marginBottom: 20 }}>📈 Volume Over Time</h2>
           <div
@@ -203,7 +195,7 @@ export default function AnalyticsPage() {
           >
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px', height: '200px' }}>
               {analytics.volumeChart.map((data, index) => {
-                const maxVolume = Math.max(...analytics.volumeChart.map(d => d.volume));
+                const maxVolume = Math.max(1, ...analytics.volumeChart.map(d => d.volume));
                 const height = (data.volume / maxVolume) * 100;
                 return (
                   <div key={index} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
@@ -219,7 +211,7 @@ export default function AnalyticsPage() {
                         fontSize: '12px',
                         fontWeight: 900,
                       }}
-                      title={`${data.volume} cUSD`}
+                      title={`${data.volume} USDm`}
                     />
                     <div style={{ fontSize: '12px', fontWeight: 700, textAlign: 'center' }}>
                       {data.date}
@@ -230,8 +222,10 @@ export default function AnalyticsPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* Recent Activity */}
+        {analytics.recentActivity.length > 0 && (
         <div style={{ marginBottom: 40 }}>
           <h2 style={{ fontSize: '28px', marginBottom: 20 }}>⚡ Recent Activity</h2>
           <div style={{ display: 'grid', gap: '8px' }}>
@@ -255,7 +249,7 @@ export default function AnalyticsPage() {
                   {activity.player.slice(0, 6)}...{activity.player.slice(-4)}
                 </span>
                 <span style={{ color: activity.type === 'win' ? 'var(--green)' : 'var(--red)', fontWeight: 900 }}>
-                  {activity.type === 'win' ? '+' : '-'}{activity.amount} cUSD
+                  {activity.type === 'win' ? '+' : '-'}{activity.amount} USDm
                 </span>
                 <span className="muted" style={{ marginLeft: 'auto' }}>
                   {Math.floor((Date.now() - activity.timestamp) / 60000)}m ago
@@ -264,6 +258,7 @@ export default function AnalyticsPage() {
             ))}
           </div>
         </div>
+        )}
 
         <div style={{ textAlign: 'center', marginTop: 48 }}>
           <button className="btn" onClick={() => router.push("/")}>

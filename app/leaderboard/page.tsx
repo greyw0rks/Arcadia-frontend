@@ -10,10 +10,12 @@ interface LeaderboardEntry {
   address: string;
   username: string | null;
   avatar: string | null;
+  unit: 'USDm' | 'STX';
   score: number;
   gamesPlayed: number;
   winRate: number;
   totalWinnings: number;
+  highestMultiplierBp: number;
 }
 
 type Period = 'daily' | 'weekly' | 'monthly' | 'allTime';
@@ -30,35 +32,25 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     loadLeaderboard();
-  }, [period, metric]);
+  }, [period, metric, address]);
 
   async function loadLeaderboard() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/leaderboard?period=${period}&metric=${metric}`);
+      const params = new URLSearchParams({ period, metric });
+      if (address) params.set('viewer', address);
+      const res = await fetch(`/api/leaderboard?${params.toString()}`);
+      if (!res.ok) throw new Error(`leaderboard request failed (${res.status})`);
       const data = await res.json();
       setLeaderboard(data.leaderboard || []);
-      setUserRank(data.userRank || null);
+      setUserRank(data.userRank ?? null);
     } catch (error) {
       console.error('Failed to load leaderboard:', error);
-      // Mock data for now
-      setLeaderboard(generateMockLeaderboard());
+      setLeaderboard([]);
+      setUserRank(null);
     } finally {
       setLoading(false);
     }
-  }
-
-  function generateMockLeaderboard(): LeaderboardEntry[] {
-    return Array.from({ length: 50 }, (_, i) => ({
-      rank: i + 1,
-      address: `0x${Math.random().toString(16).slice(2, 42)}`,
-      username: `Player${i + 1}`,
-      avatar: ['🎮', '🎯', '🎲', '🎰', '🏆', '⭐', '💎', '🔥'][i % 8],
-      score: Math.floor(Math.random() * 10000) + 1000,
-      gamesPlayed: Math.floor(Math.random() * 100) + 10,
-      winRate: Math.floor(Math.random() * 100),
-      totalWinnings: Math.floor(Math.random() * 1000) + 100,
-    })).sort((a, b) => b.score - a.score);
   }
 
   const periods: { value: Period; label: string }[] = [
@@ -177,6 +169,13 @@ export default function LeaderboardPage() {
           <div style={{ textAlign: 'center', padding: '60px 0' }}>
             <p className="muted">Loading leaderboard...</p>
           </div>
+        ) : leaderboard.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '60px 0' }}>
+            <p style={{ fontSize: '40px', margin: 0 }}>🕹️</p>
+            <p className="muted" style={{ fontSize: '18px' }}>
+              No games played yet — be the first on the board!
+            </p>
+          </div>
         ) : (
           <div style={{ maxWidth: '900px', margin: '0 auto' }}>
             {leaderboard.map((entry) => (
@@ -245,10 +244,10 @@ export default function LeaderboardPage() {
                 {/* Score */}
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ margin: 0, fontSize: '24px', fontWeight: 900, color: 'var(--accent)' }}>
-                    {metric === 'winnings' && `${entry.totalWinnings} cUSD`}
+                    {metric === 'winnings' && `${entry.totalWinnings} ${entry.unit}`}
                     {metric === 'winRate' && `${entry.winRate}%`}
                     {metric === 'gamesPlayed' && entry.gamesPlayed}
-                    {metric === 'highestMultiplier' && `${(entry.score / 100).toFixed(1)}x`}
+                    {metric === 'highestMultiplier' && `${(entry.highestMultiplierBp / 10000).toFixed(1)}x`}
                   </p>
                 </div>
               </div>
