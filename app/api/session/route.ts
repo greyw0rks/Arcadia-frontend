@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   }
   if (stake > MAX_STAKE[chain]) {
     return NextResponse.json(
-      { error: `stake exceeds the ${MAX_STAKE[chain]} ${chain === "stacks" ? "STX" : "cUSD"} max per game` },
+      { error: `stake exceeds the ${MAX_STAKE[chain]} ${chain === "stacks" ? "STX" : "USDm"} max per game` },
       { status: 400 }
     );
   }

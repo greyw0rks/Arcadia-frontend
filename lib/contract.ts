@@ -115,7 +115,7 @@ export interface ChainMeta {
 }
 
 export const CHAINS: Record<ChainId, ChainMeta> = {
-  celo: { id: "celo", label: "Celo", stakeSymbol: "cUSD", decimals: 18 },
+  celo: { id: "celo", label: "Celo", stakeSymbol: "USDm", decimals: 18 },
   stacks: { id: "stacks", label: "Stacks", stakeSymbol: "STX", decimals: 6 },
 };
 
@@ -160,8 +160,8 @@ export const CELO_TOKENS: Record<CeloToken, CeloTokenMeta> = {
   // deployed). The two new instances are configured via the *_USDC / *_USDT vars.
   cusd: {
     id: "cusd",
-    label: "cUSD",
-    symbol: "cUSD",
+    label: "USDm",
+    symbol: "USDm",
     decimals: 18,
     arcadeAddress: ARCADE_ADDRESS,
     tokenAddress: CUSD_ADDRESS,
