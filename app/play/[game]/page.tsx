@@ -62,6 +62,14 @@ export default function PlayPage() {
   const [secsLeft, setSecsLeft] = useState(0);
 
   const answeringRef = useRef(false);
+  // Free one-time demo: no stake, no signature, no payout. Refs mirror the state so the (memoized)
+  // round/answer callbacks read the latest values without stale closures.
+  const [isDemo, setIsDemo] = useState(false);
+  const isDemoRef = useRef(false);
+  const multiplierRef = useRef(10000);
+  // Client-side record that this wallet already used its demo (server is authoritative; this is just
+  // for instant UI feedback). Read in an effect to avoid SSR/hydration mismatches.
+  const [demoUsedLocally, setDemoUsedLocally] = useState(false);
 
   // Load the selected game's metadata so the setup screen works for any module.
   useEffect(() => {
@@ -79,6 +87,17 @@ export default function PlayPage() {
       })
       .catch(() => {});
   }, [game]);
+
+  // Reflect whether the connected wallet has already spent its demo (this browser's record).
+  useEffect(() => {
+    if (typeof window === "undefined" || !address) {
+      setDemoUsedLocally(false);
+      return;
+    }
+    setDemoUsedLocally(
+      localStorage.getItem(`arcadia_demo_used_${chain}_${address.toLowerCase()}`) === "1"
+    );
+  }, [address, chain]);
 
   const fail = (msg: string) => {
     setError(msg);
@@ -99,10 +118,46 @@ export default function PlayPage() {
     }
   }
 
+  // ---- free demo: create a no-stake session and play, skipping all on-chain steps ----
+  async function beginDemo() {
+    setError("");
+    if (!address) return;
+    setPhase("starting");
+    try {
+      setStatus("Starting your free demo — no wallet signature needed…");
+      const res = await fetch("/api/session", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ game, player: address, chain, token, demo: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Demo unavailable.");
+      const sid = data.sessionId as `0x${string}`;
+      setSessionId(sid);
+      setMaxRounds(data.maxRounds);
+      setIsDemo(true);
+      isDemoRef.current = true;
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`arcadia_demo_used_${chain}_${address.toLowerCase()}`, "1");
+      }
+      setDemoUsedLocally(true);
+      setStatus("Loading first question…");
+      await loadRound(sid);
+      setPhase("playing");
+    } catch (e: any) {
+      fail(e?.message ?? "Couldn't start demo.");
+    }
+  }
+
   // ---- start: create session, approve + stake on-chain, then load round 1 ----
   async function begin() {
     setError("");
     if (!address) return;
+    // Typing "demo" in the amount field starts the free one-time play instead of staking.
+    if (stake.trim().toLowerCase() === "demo") {
+      await beginDemo();
+      return;
+    }
     const amt = Number(stake);
     if (!(amt > 0)) {
       setError("Enter a stake greater than 0.");
@@ -158,6 +213,7 @@ export default function PlayPage() {
       }
       setRound(d.round);
       setMultiplierBp(d.multiplierBp);
+      multiplierRef.current = d.multiplierBp;
       setSelected(null);
       setCorrectIndex(null);
       setLastResult(null);
@@ -185,6 +241,7 @@ export default function PlayPage() {
         setCorrectIndex(d.correctIndex);
         setLastResult(d.result);
         setMultiplierBp(d.multiplierBp);
+        multiplierRef.current = d.multiplierBp;
         setPhase("reveal");
 
         // Play sound
@@ -211,6 +268,12 @@ export default function PlayPage() {
 
   // ---- finalize + settle ----
   async function finalize(sid: `0x${string}`) {
+    // Demo games never settle on-chain — just show the result with no payout.
+    if (isDemoRef.current) {
+      setFinalBp(multiplierRef.current);
+      setPhase("done");
+      return;
+    }
     try {
       setPhase("settling");
       setStatus("Signing final result…");
@@ -252,6 +315,9 @@ export default function PlayPage() {
   const up = multiplierBp >= 10000;
   const estPayout = finalBp != null ? (Number(stake) * 0.97 * finalBp) / 10000 : null;
 
+  // "demo" in the amount field => free one-time play (see beginDemo).
+  const demoTyped = stake.trim().toLowerCase() === "demo";
+
   // Live difficulty preview from the chosen stake (higher bet => harder session).
   const stakeNum = Number(stake) || 0;
   const overMax = stakeNum > MAX_STAKE[chain];
@@ -289,31 +355,45 @@ export default function PlayPage() {
             <b>The higher your bet, the harder the session</b> — fewer seconds per question, tougher
             questions, and more rounds. Max bet is {MAX_STAKE[chain]} {stakeSymbol} per game.
           </p>
+          <p className="muted" style={{ marginTop: 8 }}>
+            New here? Type <b>demo</b> in the amount field for a one-time free play — no stake, no
+            signature, no payout, just the game. One demo per wallet.
+          </p>
           <div className="row" style={{ marginTop: 20, justifyContent: "flex-start", gap: 16 }}>
             <input
               className="input"
-              type="number"
-              min="0"
-              max={MAX_STAKE[chain]}
-              step="0.1"
+              type="text"
+              inputMode="decimal"
+              placeholder={`${stakeSymbol} or "demo"`}
               value={stake}
               onChange={(e) => setStake(e.target.value)}
             />
-            <span className="muted">{stakeSymbol} stake</span>
+            <span className="muted">{demoTyped ? "free demo" : `${stakeSymbol} stake`}</span>
             <button className="btn" onClick={begin}>
-              Stake &amp; Play
+              {demoTyped ? "Play Demo" : "Stake & Play"}
             </button>
           </div>
-          <div className="row" style={{ marginTop: 12, justifyContent: "flex-start", gap: 16 }}>
-            <span className={`difficulty-pill ${diffLabel.toLowerCase()}`}>
-              Difficulty: <b>{diffLabel}</b>
-            </span>
-            <span className="muted">
-              {previewRounds} rounds · up to {formatMultiplier(10000 + 1000 * previewRounds)} · shorter
-              timer at higher bets
-            </span>
-          </div>
-          {overMax && (
+          {demoTyped ? (
+            <div className="row" style={{ marginTop: 12, justifyContent: "flex-start", gap: 16 }}>
+              <span className="difficulty-pill easy">Demo</span>
+              <span className="muted">
+                {demoUsedLocally
+                  ? "This wallet has already used its free demo — enter an amount to play for real."
+                  : `Free one-time play — no transaction, no payout. Stake ${stakeSymbol} to play for real.`}
+              </span>
+            </div>
+          ) : (
+            <div className="row" style={{ marginTop: 12, justifyContent: "flex-start", gap: 16 }}>
+              <span className={`difficulty-pill ${diffLabel.toLowerCase()}`}>
+                Difficulty: <b>{diffLabel}</b>
+              </span>
+              <span className="muted">
+                {previewRounds} rounds · up to {formatMultiplier(10000 + 1000 * previewRounds)} · shorter
+                timer at higher bets
+              </span>
+            </div>
+          )}
+          {overMax && !demoTyped && (
             <div className="error">Max bet is {MAX_STAKE[chain]} {stakeSymbol} per game.</div>
           )}
           {error && <div className="error">{error}</div>}
@@ -381,15 +461,24 @@ export default function PlayPage() {
         </div>
       ) : phase === "done" ? (
         <div className="panel center">
-          <p className="muted">Final multiplier</p>
+          <p className="muted">{isDemo ? "Demo result" : "Final multiplier"}</p>
           <div className={`multiplier ${up ? "up" : "down"}`}>
             {formatMultiplier(finalBp ?? multiplierBp)}
           </div>
-          {estPayout != null && (
+          {isDemo ? (
             <p style={{ fontSize: 18, marginTop: 16 }}>
-              Payout ≈ <b>{estPayout.toFixed(3)} {stakeSymbol}</b>{" "}
-              <span className="muted">(staked {stake}, settled on-chain)</span>
+              That was your free demo — <b>no stake, no payout</b>.{" "}
+              <span className="muted">
+                Enter an amount of {stakeSymbol} to play for real and win up to your final multiplier.
+              </span>
             </p>
+          ) : (
+            estPayout != null && (
+              <p style={{ fontSize: 18, marginTop: 16 }}>
+                Payout ≈ <b>{estPayout.toFixed(3)} {stakeSymbol}</b>{" "}
+                <span className="muted">(staked {stake}, settled on-chain)</span>
+              </p>
+            )
           )}
           <div className="row center" style={{ justifyContent: "center", gap: 12, marginTop: 24 }}>
             <button className="btn" onClick={() => router.push("/")}>
@@ -401,10 +490,14 @@ export default function PlayPage() {
                 setPhase("setup");
                 setFinalBp(null);
                 setMultiplierBp(10000);
+                multiplierRef.current = 10000;
                 setSessionId(null);
+                setIsDemo(false);
+                isDemoRef.current = false;
+                if (isDemo) setStake("1"); // demo can't be replayed; reset to a real stake
               }}
             >
-              Play again
+              {isDemo ? "Play for real" : "Play again"}
             </button>
           </div>
         </div>
@@ -413,7 +506,7 @@ export default function PlayPage() {
           <h2>Something went wrong</h2>
           <p className="error">{error}</p>
 
-          {sessionId && (
+          {sessionId && !isDemo && (
             <div style={{ marginTop: 20 }}>
               <p className="info">
                 Your stake is safe! After 1 hour, you can request a refund to get your money back.
@@ -425,7 +518,7 @@ export default function PlayPage() {
             <button className="btn" onClick={() => router.push("/")}>
               Back to lobby
             </button>
-            {sessionId && (
+            {sessionId && !isDemo && (
               <button
                 className="btn"
                 style={{ background: "var(--green)" }}
@@ -436,7 +529,7 @@ export default function PlayPage() {
             )}
           </div>
 
-          {sessionId && (
+          {sessionId && !isDemo && (
             <p className="muted" style={{ marginTop: 16, fontSize: 13, maxWidth: 500 }}>
               The refund button will work after your session expires (1 hour from when you started).
               It will return your stake minus the 3% entry fee.
