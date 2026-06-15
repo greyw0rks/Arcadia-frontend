@@ -328,8 +328,18 @@ export default function PlayPage() {
   return (
     <div className="container">
       <div className="topbar">
-        <div className="brand" style={{ cursor: "pointer" }} onClick={() => router.push("/")}>
-          Arcadia
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <button
+            className="btn ghost"
+            onClick={() => router.replace("/games")}
+            style={{ padding: "12px 16px", fontSize: "20px" }}
+            title="Back to lobby"
+          >
+            ←
+          </button>
+          <div className="brand" style={{ cursor: "pointer" }} onClick={() => router.replace("/games")}>
+            Arcadia
+          </div>
         </div>
         <ConnectControl />
       </div>
@@ -481,7 +491,7 @@ export default function PlayPage() {
             )
           )}
           <div className="row center" style={{ justifyContent: "center", gap: 12, marginTop: 24 }}>
-            <button className="btn" onClick={() => router.push("/")}>
+            <button className="btn" onClick={() => router.replace("/games")}>
               Back to lobby
             </button>
             <button
@@ -515,7 +525,7 @@ export default function PlayPage() {
           )}
 
           <div className="row center" style={{ justifyContent: "center", gap: 12, marginTop: 24, flexWrap: "wrap" }}>
-            <button className="btn" onClick={() => router.push("/")}>
+            <button className="btn" onClick={() => router.replace("/games")}>
               Back to lobby
             </button>
             {sessionId && !isDemo && (
