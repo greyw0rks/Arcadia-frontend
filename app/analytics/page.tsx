@@ -261,7 +261,7 @@ export default function AnalyticsPage() {
         )}
 
         <div style={{ textAlign: 'center', marginTop: 48 }}>
-          <button className="btn" onClick={() => router.push("/")}>
+          <button className="btn" onClick={() => router.push("/games")}>
             Back to Games
           </button>
         </div>

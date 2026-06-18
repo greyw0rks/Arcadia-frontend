@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { useArcade } from "../../../lib/useArcade";
 import { formatMultiplier, CHAINS, celoTokenMeta } from "../../../lib/contract";
-import { MAX_STAKE, difficultyFromStake, roundsFor } from "../../../server/difficulty";
+import { MAX_STAKE, difficultyFromStake, roundsFor } from "../../../lib/clientConfig";
 import { useChain } from "../../../lib/chainContext";
 import { useStacksWallet } from "../../../lib/stacksWallet";
 import { ConnectControl } from "../../../components/ConnectControl";
