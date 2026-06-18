@@ -156,7 +156,7 @@ export default function GamesPage() {
 
       <div style={{ marginTop: 48, textAlign: "center", paddingBottom: 40 }}>
         <p className="muted" style={{ fontSize: 14, marginBottom: 12 }}>
-          Built on Celo · Testnet Demo · <a href="/faq" style={{ textDecoration: "underline" }}>FAQ</a>
+          Built on Celo · <a href="/faq" style={{ textDecoration: "underline" }}>FAQ</a>
         </p>
         {address && (
           <button
