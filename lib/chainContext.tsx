@@ -14,6 +14,7 @@ interface ChainContextValue {
   setChain: (c: ChainId) => void;
   token: CeloToken;
   setToken: (t: CeloToken) => void;
+  isMiniPay: boolean;
 }
 
 const ChainContext = createContext<ChainContextValue>({
@@ -21,6 +22,7 @@ const ChainContext = createContext<ChainContextValue>({
   setChain: () => {},
   token: DEFAULT_CELO_TOKEN,
   setToken: () => {},
+  isMiniPay: false,
 });
 
 const TOKEN_STORAGE_KEY = "quizarcade.celoToken";
@@ -33,14 +35,22 @@ export function ChainProvider({ children }: { children: ReactNode }) {
   // Always start on Celo (the chain is not persisted — see note above).
   const [chain, setChainState] = useState<ChainId>("celo");
   const [token, setTokenState] = useState<CeloToken>(DEFAULT_CELO_TOKEN);
+  const [isMiniPay, setIsMiniPay] = useState(false);
 
   // Hydrate the stake token from localStorage after mount (avoids SSR mismatch).
+  // Also detect MiniPay here so every consumer can read it without local state.
   useEffect(() => {
     const savedToken = window.localStorage.getItem(TOKEN_STORAGE_KEY);
     if (isCeloToken(savedToken)) setTokenState(savedToken);
+
+    if ((window.ethereum as any)?.isMiniPay) {
+      setIsMiniPay(true);
+      setChainState("celo"); // MiniPay is Celo-only; lock the chain
+    }
   }, []);
 
   const setChain = (c: ChainId) => {
+    if (isMiniPay) return; // MiniPay can't switch chains
     setChainState(c);
   };
 
@@ -50,7 +60,7 @@ export function ChainProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ChainContext.Provider value={{ chain, setChain, token, setToken }}>
+    <ChainContext.Provider value={{ chain, setChain, token, setToken, isMiniPay }}>
       {children}
     </ChainContext.Provider>
   );

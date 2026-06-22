@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useAccount, useConnect } from "wagmi";
 import { injected } from "wagmi/connectors";
@@ -95,21 +95,18 @@ function StacksConnectButton() {
   );
 }
 
-// Detects MiniPay, auto-connects via injected connector, and shows a compact address pill.
-// Falls back to the standard RainbowKit button for normal browser sessions.
+// Detects MiniPay via context, auto-connects via plain injected() connector (not MetaMask-targeted),
+// and shows a compact address pill. Falls back to RainbowKit for normal browser sessions.
 function CeloConnectButton() {
-  const [isMiniPay, setIsMiniPay] = useState(false);
+  const { isMiniPay } = useChain();
   const { address, isConnected } = useAccount();
   const { connect } = useConnect();
 
   useEffect(() => {
-    if (typeof window !== "undefined" && (window.ethereum as any)?.isMiniPay) {
-      setIsMiniPay(true);
-      if (!isConnected) {
-        connect({ connector: injected({ target: "metaMask" }) });
-      }
+    if (isMiniPay && !isConnected) {
+      connect({ connector: injected() });
     }
-  }, [isConnected, connect]);
+  }, [isMiniPay, isConnected, connect]);
 
   if (isMiniPay && isConnected && address) {
     return (
@@ -133,11 +130,11 @@ function CeloConnectButton() {
 }
 
 export function ConnectControl() {
-  const { chain } = useChain();
+  const { chain, isMiniPay } = useChain();
   return (
     <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-      <ChainSwitcher />
-      {chain === "celo" && <TokenSwitcher />}
+      {!isMiniPay && <ChainSwitcher />}
+      {!isMiniPay && chain === "celo" && <TokenSwitcher />}
       {chain === "stacks" ? (
         <StacksConnectButton />
       ) : (
