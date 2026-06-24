@@ -43,8 +43,48 @@ export function ChainSwitcher() {
 // Stake-token picker, shown only on Celo. Mirrors the chain switcher: each option selects which
 // QuizArcade instance (cUSD / USDC / USDT) the next session stakes + settles against.
 export function TokenSwitcher() {
-  const { token, setToken } = useChain();
+  const { token, setToken, isMiniPay } = useChain();
   const ids = Object.keys(CELO_TOKENS) as CeloToken[];
+
+  if (isMiniPay) {
+    return (
+      <div
+        style={{
+          display: "inline-flex",
+          border: "1px solid #322E27",
+          borderRadius: "999px",
+          background: "#1C1A16",
+          overflow: "hidden",
+        }}
+      >
+        {ids.map((id, i) => {
+          const active = token === id;
+          return (
+            <button
+              key={id}
+              onClick={() => setToken(id)}
+              style={{
+                padding: "6px 11px",
+                border: "none",
+                borderRight: i < ids.length - 1 ? "1px solid #322E27" : "none",
+                background: active ? "#EDE8DF" : "transparent",
+                color: active ? "#14120F" : "#A39C8E",
+                fontWeight: active ? 600 : 400,
+                cursor: "pointer",
+                fontFamily: "'Inter', system-ui, sans-serif",
+                fontSize: "12px",
+                letterSpacing: "0.02em",
+              }}
+              aria-pressed={active}
+            >
+              {CELO_TOKENS[id].label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "inline-flex", border: "3px solid #000", background: "#fff" }}>
       {ids.map((id, i) => {
@@ -137,7 +177,7 @@ export function ConnectControl() {
   return (
     <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
       {!isMiniPay && <ChainSwitcher />}
-      {!isMiniPay && chain === "celo" && <TokenSwitcher />}
+      {chain === "celo" && <TokenSwitcher />}
       {chain === "stacks" ? (
         <StacksConnectButton />
       ) : (

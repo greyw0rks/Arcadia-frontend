@@ -16,6 +16,21 @@
     --mobile-green:        #7FB996;   /* sage-green (correct / success) */
     --mobile-red:          #D98A7B;   /* muted terracotta (wrong / error) */
     --mobile-gold:         #C9A671;   /* warm tan (multiplier up) */
+
+    /* Override base desktop vars so inline var(--card) / var(--border) /
+       var(--text) etc. automatically resolve to dark values on mobile —
+       fixes FAQ accordion and profile stat cards without touching JSX. */
+    --bg:        #14120F;
+    --bg-alt:    #24211C;
+    --card:      #1C1A16;
+    --border:    #322E27;
+    --text:      #EDE8DF;
+    --text-dim:  #A39C8E;
+    --shadow:    none;
+    --shadow-sm: none;
+    --shadow-lg: none;
+    --shadow-brutal: none;
+    --shadow-xl: none;
   }
 
   /* ── Root coverage — kills the white strip below content ───────────── */
