@@ -112,12 +112,15 @@ function CeloConnectButton() {
     return (
       <div
         style={{
-          padding: "8px 14px",
-          border: "3px solid #000",
-          background: "#fff",
-          fontWeight: 800,
-          fontFamily: "inherit",
-          fontSize: "14px",
+          padding: "6px 14px",
+          border: "1px solid #322E27",
+          borderRadius: "999px",
+          background: "#1C1A16",
+          color: "#EDE8DF",
+          fontWeight: 500,
+          fontFamily: "'Inter', system-ui, sans-serif",
+          fontSize: "13px",
+          letterSpacing: "0.01em",
         }}
       >
         {address.slice(0, 6)}…{address.slice(-4)}

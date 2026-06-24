@@ -1,35 +1,54 @@
-/* Mobile App UI - Dark Theme (Heal & Grow inspired) */
-/* Only applies to mobile devices - desktop stays neo-brutalism */
+/* Mobile App UI — GoodQuest editorial dark theme
+   Only applies on ≤768 px; desktop stays neo-brutalism. */
 
 @media (max-width: 768px) {
-  /* Dark theme colors for mobile */
+
+  /* ── Design tokens (mirrors GoodQuest) ─────────────────────────────── */
   :root {
-    --mobile-bg: #111111;
-    --mobile-surface: #1A1A1A;
-    --mobile-text-primary: #F2ECE6;
-    --mobile-text-secondary: #B5AEA7;
-    --mobile-border: #2A2A2A;
-    --mobile-accent: #FF6B9D;
+    --mobile-bg:           #14120F;   /* warm near-black canvas */
+    --mobile-surface:      #1C1A16;   /* raised card */
+    --mobile-elevated:     #24211C;   /* elevated / modal */
+    --mobile-text-primary: #EDE8DF;   /* cream */
+    --mobile-text-secondary:#A39C8E;  /* warm muted */
+    --mobile-text-muted:   #6B665B;   /* faint */
+    --mobile-border:       #322E27;   /* hairline */
+    --mobile-accent:       #FF6B9D;   /* keep Arcadia pink for game cues */
+    --mobile-green:        #7FB996;   /* sage-green (correct / success) */
+    --mobile-red:          #D98A7B;   /* muted terracotta (wrong / error) */
+    --mobile-gold:         #C9A671;   /* warm tan (multiplier up) */
   }
 
-  /* Apply dark theme to body on mobile */
+  /* ── Root coverage — kills the white strip below content ───────────── */
+  html {
+    background: var(--mobile-bg);
+  }
+
   body {
     background: var(--mobile-bg);
     color: var(--mobile-text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
   }
 
-  /* Container adjustments */
+  /* Remove all neo-brutalism hard shadows on mobile */
+  * {
+    box-shadow: none !important;
+  }
+
+  /* ── Container ──────────────────────────────────────────────────────── */
   .container {
     background: var(--mobile-bg);
-    padding: 16px 16px 80px;
+    padding: 16px 16px 90px;
+    min-height: 100dvh;
   }
 
-  /* Topbar - minimal dark style */
+  /* ── Topbar ─────────────────────────────────────────────────────────── */
   .topbar {
     background: var(--mobile-bg);
     border-bottom: 1px solid var(--mobile-border);
-    padding: 16px 0;
-    margin-bottom: 24px;
+    padding: 14px 0 18px;
+    margin-bottom: 20px;
   }
 
   .brand {
@@ -37,10 +56,12 @@
     border: none;
     box-shadow: none;
     color: var(--mobile-text-primary);
-    font-size: 24px;
+    font-size: 22px;
+    font-weight: 600;
     padding: 0;
-    font-family: serif;
+    font-family: 'Fraunces', Georgia, serif;
     letter-spacing: -0.02em;
+    text-transform: uppercase;
   }
 
   .brand::before {
@@ -52,15 +73,17 @@
     box-shadow: none;
   }
 
-  /* Hero - dark minimalist */
+  /* ── Hero ────────────────────────────────────────────────────────────── */
   .hero {
     background: var(--mobile-surface);
     border: 1px solid var(--mobile-border);
-    border-radius: 16px;
+    border-radius: 18px;
     box-shadow: none;
-    padding: 32px 24px;
-    margin-bottom: 32px;
+    padding: 28px 20px;
+    margin-bottom: 24px;
     transform: none;
+    position: relative;
+    overflow: hidden;
   }
 
   .hero::before,
@@ -69,36 +92,54 @@
   }
 
   .hero h1 {
-    font-size: 32px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 28px;
+    font-weight: 600;
     color: var(--mobile-text-primary);
     text-shadow: none;
-    font-family: serif;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-bottom: 10px;
   }
 
   .hero .tagline {
     color: var(--mobile-text-secondary);
-    font-size: 15px;
+    font-size: 13px;
     line-height: 1.6;
+    font-weight: 400;
+    margin-bottom: 14px;
   }
 
   .hero .mechanic {
-    background: var(--mobile-bg);
+    background: var(--mobile-elevated);
     border: 1px solid var(--mobile-border);
     border-radius: 12px;
     box-shadow: none;
-    padding: 12px 20px;
+    padding: 10px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--mobile-text-secondary);
+    flex-wrap: wrap;
+    gap: 6px;
   }
 
-  /* Cards - rounded dark style */
+  .hero .mechanic .up {
+    color: var(--mobile-green);
+  }
+
+  .hero .mechanic .down {
+    color: var(--mobile-red);
+  }
+
+  /* ── Cards ────────────────────────────────────────────────────────────── */
   .card {
     background: var(--mobile-surface);
     border: 1px solid var(--mobile-border);
-    border-radius: 16px;
+    border-radius: 18px;
     box-shadow: none;
-    padding: 20px 16px;
+    padding: 18px 14px;
     min-height: auto;
-    transition: transform 0.2s ease;
+    transition: border-color 0.2s ease, transform 0.2s ease;
   }
 
   .card::before,
@@ -107,48 +148,54 @@
   }
 
   .card.playable:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    transform: translateY(-3px);
     border-color: var(--mobile-accent);
   }
 
   .card.playable:active {
     transform: translateY(0);
-    box-shadow: none;
   }
 
   .card .game-icon-wrapper {
-    width: 56px;
-    height: 56px;
-    margin-bottom: 12px;
-    background: var(--mobile-bg);
+    width: 52px;
+    height: 52px;
+    margin-bottom: 10px;
+    background: var(--mobile-elevated);
     border: 1px solid var(--mobile-border);
-    border-radius: 12px;
+    border-radius: 14px;
     padding: 8px;
   }
 
   .card h3 {
-    font-size: 16px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 15px;
+    font-weight: 600;
     color: var(--mobile-text-primary);
-    font-family: serif;
     letter-spacing: -0.01em;
+    text-transform: none;
+    margin-bottom: 6px;
   }
 
   .card p {
     color: var(--mobile-text-secondary);
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.5;
+    font-weight: 400;
+    margin-bottom: 10px;
   }
 
-  /* Badges - rounded style */
+  /* ── Badges ──────────────────────────────────────────────────────────── */
   .badge {
-    background: var(--mobile-accent);
-    border: none;
-    border-radius: 20px;
+    background: transparent;
+    border: 1px solid var(--mobile-border);
+    border-radius: 999px;
     box-shadow: none;
-    padding: 6px 14px;
+    padding: 4px 12px;
     font-size: 10px;
-    letter-spacing: 0.05em;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--mobile-text-secondary);
+    text-transform: uppercase;
   }
 
   .badge::before {
@@ -156,25 +203,38 @@
   }
 
   .badge.live {
-    background: var(--mobile-accent);
-    color: var(--mobile-text-primary);
+    border-color: var(--mobile-green);
+    color: var(--mobile-green);
+    background: transparent;
+    animation: none;
+  }
+
+  .badge.live::after {
+    content: "●";
+    margin-left: 5px;
+    animation: blink 1.5s infinite;
+    font-size: 8px;
   }
 
   .badge.soon {
-    background: var(--mobile-border);
-    color: var(--mobile-text-secondary);
+    border-color: var(--mobile-border);
+    color: var(--mobile-text-muted);
+    background: transparent;
   }
 
-  /* Buttons - rounded dark style */
+  /* ── Buttons ─────────────────────────────────────────────────────────── */
   .btn {
-    background: var(--mobile-surface);
-    border: 1px solid var(--mobile-border);
-    border-radius: 12px;
+    background: var(--mobile-text-primary);
+    border: none;
+    border-radius: 999px;
     box-shadow: none;
     padding: 14px 24px;
-    font-size: 15px;
-    color: var(--mobile-text-primary);
-    transition: all 0.2s ease;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mobile-bg);
+    transition: opacity 0.15s, transform 0.1s;
   }
 
   .btn::before,
@@ -185,32 +245,40 @@
   .btn:hover {
     transform: none;
     box-shadow: none;
-    background: var(--mobile-accent);
-    border-color: var(--mobile-accent);
+    opacity: 0.88;
   }
 
   .btn:active {
     transform: scale(0.98);
-    box-shadow: none;
+  }
+
+  .btn:disabled {
+    background: var(--mobile-elevated);
+    color: var(--mobile-text-muted);
+    opacity: 1;
   }
 
   .btn.ghost {
     background: transparent;
     border: 1px solid var(--mobile-border);
+    color: var(--mobile-text-primary);
+    border-radius: 999px;
   }
 
   .btn.ghost:hover {
     background: var(--mobile-surface);
-    border-color: var(--mobile-text-secondary);
+    border-color: var(--mobile-text-muted);
+    opacity: 1;
   }
 
-  /* Panel - dark rounded */
+  /* ── Panel ────────────────────────────────────────────────────────────── */
   .panel {
     background: var(--mobile-surface);
     border: 1px solid var(--mobile-border);
-    border-radius: 16px;
+    border-radius: 18px;
     box-shadow: none;
-    padding: 24px 20px;
+    padding: 22px 18px;
+    margin-top: 8px;
   }
 
   .panel::before,
@@ -218,16 +286,29 @@
     display: none;
   }
 
-  /* Options - rounded style */
-  .option {
-    background: var(--mobile-bg);
-    border: 1px solid var(--mobile-border);
-    border-radius: 12px;
-    box-shadow: none;
-    padding: 16px 20px;
-    margin: 12px 0;
-    transition: all 0.2s ease;
+  .panel h2 {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 22px;
+    font-weight: 600;
     color: var(--mobile-text-primary);
+    letter-spacing: -0.02em;
+    text-transform: none;
+    margin-bottom: 10px;
+  }
+
+  /* ── Answer options ──────────────────────────────────────────────────── */
+  .option {
+    background: var(--mobile-elevated);
+    border: 1px solid var(--mobile-border);
+    border-radius: 14px;
+    box-shadow: none;
+    padding: 15px 18px;
+    margin: 10px 0;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--mobile-text-primary);
+    transition: border-color 0.15s, background 0.15s;
+    text-align: left;
   }
 
   .option::before,
@@ -242,41 +323,64 @@
     border-color: var(--mobile-accent);
   }
 
+  .option:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+
   .option.correct {
-    background: #1a3a2a;
-    border-color: #2a5a3a;
+    background: rgba(127, 185, 150, 0.12);
+    border-color: var(--mobile-green);
+    color: var(--mobile-green);
     box-shadow: none;
+    animation: none;
   }
 
   .option.wrong {
-    background: #3a1a1a;
-    border-color: #5a2a2a;
+    background: rgba(217, 138, 123, 0.12);
+    border-color: var(--mobile-red);
+    color: var(--mobile-red);
     box-shadow: none;
+    animation: none;
   }
 
-  /* Input - dark rounded */
+  /* ── Input ────────────────────────────────────────────────────────────── */
   .input {
-    background: var(--mobile-bg);
+    background: var(--mobile-elevated);
     border: 1px solid var(--mobile-border);
     border-radius: 12px;
     box-shadow: none;
     color: var(--mobile-text-primary);
     padding: 14px 16px;
+    font-size: 16px;
+    font-weight: 500;
+    font-family: 'Inter', system-ui, sans-serif;
+    width: 160px;
+  }
+
+  .input::placeholder {
+    color: var(--mobile-text-muted);
   }
 
   .input:focus {
+    outline: none;
     box-shadow: none;
     border-color: var(--mobile-accent);
     background: var(--mobile-surface);
+    transform: none;
   }
 
-  /* Timer - rounded */
+  .input:hover {
+    background: var(--mobile-surface);
+  }
+
+  /* ── Timer ────────────────────────────────────────────────────────────── */
   .timer-track {
-    background: var(--mobile-bg);
-    border: 1px solid var(--mobile-border);
-    border-radius: 8px;
+    background: var(--mobile-elevated);
+    border: none;
+    border-radius: 999px;
     box-shadow: none;
-    height: 8px;
+    height: 4px;
+    margin: 16px 0 20px;
   }
 
   .timer-track::before,
@@ -286,7 +390,7 @@
 
   .timer-fill {
     background: var(--mobile-accent);
-    border-radius: 8px;
+    border-radius: 999px;
     box-shadow: none;
   }
 
@@ -294,31 +398,50 @@
     display: none;
   }
 
-  /* Multiplier - clean style */
+  /* ── Multiplier ──────────────────────────────────────────────────────── */
   .multiplier {
+    font-family: 'Fraunces', Georgia, serif;
     color: var(--mobile-text-primary);
     text-shadow: none;
-    font-family: serif;
+    letter-spacing: -0.03em;
+    font-size: 56px;
   }
 
   .multiplier.up {
-    color: #6BCF7F;
+    color: var(--mobile-gold);
   }
 
   .multiplier.down {
-    color: #FF6B6B;
+    color: var(--mobile-red);
   }
 
-  /* Grid - maintain 2 columns but with spacing */
+  /* ── Difficulty pill ────────────────────────────────────────────────── */
+  .difficulty-pill {
+    background: var(--mobile-elevated);
+    border: 1px solid var(--mobile-border);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .difficulty-pill.easy  { color: var(--mobile-green); border-color: var(--mobile-green); }
+  .difficulty-pill.medium { color: var(--mobile-gold);  border-color: var(--mobile-gold); }
+  .difficulty-pill.hard  { color: var(--mobile-red);   border-color: var(--mobile-red); }
+
+  /* ── Grid ────────────────────────────────────────────────────────────── */
   .grid {
-    gap: 16px;
+    gap: 12px;
   }
 
-  /* Progress dots - rounded */
+  /* ── Progress dots ───────────────────────────────────────────────────── */
   .progress-dot {
-    border: 2px solid var(--mobile-border);
+    border: 1px solid var(--mobile-border);
     border-radius: 50%;
+    background: var(--mobile-elevated);
     box-shadow: none;
+    width: 18px;
+    height: 18px;
   }
 
   .progress-dot.active {
@@ -329,87 +452,94 @@
   }
 
   .progress-dot.complete {
-    background: #6BCF7F;
-    border-color: #6BCF7F;
+    background: var(--mobile-green);
+    border-color: var(--mobile-green);
     box-shadow: none;
+    transform: scale(1.05);
   }
 
-  /* Game image - rounded */
+  /* ── Game image ──────────────────────────────────────────────────────── */
   .game-image {
     border: 1px solid var(--mobile-border);
-    border-radius: 12px;
+    border-radius: 14px;
     box-shadow: none;
   }
 
-  /* Text colors */
+  .game-image:hover {
+    transform: none;
+  }
+
+  /* ── Text utilities ──────────────────────────────────────────────────── */
   .muted {
     color: var(--mobile-text-secondary);
+    font-size: 13px;
+    font-weight: 400;
   }
 
   .error {
-    color: #FF6B6B;
+    color: var(--mobile-red);
   }
 
   .success {
-    color: #6BCF7F;
+    color: var(--mobile-green);
   }
 
   .info {
-    background: var(--mobile-surface);
+    background: var(--mobile-elevated);
     border: 1px solid var(--mobile-border);
     border-radius: 12px;
     color: var(--mobile-text-secondary);
+    font-size: 13px;
+    padding: 12px 14px;
   }
 
-  /* Remove all hard shadows and borders on mobile */
-  * {
-    box-shadow: none !important;
-  }
-
-  /* Social links - rounded */
+  /* ── Social links ────────────────────────────────────────────────────── */
   .social-links a {
     border-radius: 12px;
   }
 }
 
-/* Bottom Navigation for Mobile */
+/* ── Mobile bottom nav ────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .mobile-bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: var(--mobile-surface);
-    border-top: 1px solid var(--mobile-border);
+    background: rgba(20, 18, 15, 0.90);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid #322E27;
     display: flex;
     justify-content: space-around;
-    padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
     z-index: 1000;
   }
 
   .mobile-bottom-nav button {
     background: transparent;
     border: none;
-    color: var(--mobile-text-secondary);
-    font-size: 24px;
-    padding: 8px 16px;
+    color: #6B665B;
+    font-size: 22px;
+    padding: 6px 14px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: color 0.15s;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
   }
 
   .mobile-bottom-nav button span {
-    font-size: 10px;
-    font-weight: 700;
+    font-size: 9px;
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
+    font-family: 'Inter', system-ui, sans-serif;
   }
 
   .mobile-bottom-nav button.active {
-    color: var(--mobile-accent);
+    color: #EDE8DF;
   }
 
   .mobile-bottom-nav button:active {
