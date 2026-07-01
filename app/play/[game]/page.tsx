@@ -24,6 +24,106 @@ interface RoundView {
 
 type Phase = "setup" | "starting" | "playing" | "reveal" | "settling" | "done" | "error";
 
+// ---------------------------------------------------------------------------
+// GameImage — resilient image loader
+//
+// Images live on the backend; the frontend proxies them via next.config.js
+// rewrites. If a request still fails (cold-start latency, transient 5xx, etc.)
+// we retry automatically with exponential back-off before showing an error.
+// ---------------------------------------------------------------------------
+const MAX_RETRIES = 4;
+
+function GameImage({
+  src,
+  imageStyle,
+}: {
+  src: string;
+  imageStyle?: "hard" | "extreme";
+}) {
+  const [attempt, setAttempt] = useState(0);
+  const [failed, setFailed] = useState(false);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Reset state whenever the src changes (new round / new image).
+  useEffect(() => {
+    setAttempt(0);
+    setFailed(false);
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+  }, [src]);
+
+  // Clean up any pending retry timer on unmount.
+  useEffect(() => () => { if (retryTimerRef.current) clearTimeout(retryTimerRef.current); }, []);
+
+  function handleError() {
+    if (attempt >= MAX_RETRIES) {
+      setFailed(true);
+      return;
+    }
+    // Exponential back-off: 500ms, 1s, 2s, 4s
+    const delay = 500 * Math.pow(2, attempt);
+    retryTimerRef.current = setTimeout(() => setAttempt((a) => a + 1), delay);
+  }
+
+  if (failed) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: 180,
+          borderRadius: 4,
+          background: "var(--surface, #1a1a2e)",
+          color: "var(--muted, #888)",
+          fontSize: 14,
+          gap: 10,
+        }}
+      >
+        <span>⚠ Image unavailable</span>
+        <button
+          className="btn ghost"
+          style={{ fontSize: 13, padding: "4px 12px" }}
+          onClick={() => { setAttempt(0); setFailed(false); }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  // Cache-bust on retry so the browser doesn't serve the cached 404/error.
+  const imgSrc = attempt === 0 ? src : `${src}?r=${attempt}`;
+
+  return (
+    <div
+      style={{
+        overflow: "hidden",
+        borderRadius: 4,
+        ...(imageStyle === "extreme" && { maxHeight: 260 }),
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        key={imgSrc}
+        src={imgSrc}
+        alt="Guess the answer"
+        className="game-image"
+        onError={handleError}
+        style={{
+          ...(imageStyle === "hard" && {
+            filter: "grayscale(85%) contrast(1.05)",
+          }),
+          ...(imageStyle === "extreme" && {
+            filter: "grayscale(100%) contrast(1.15) blur(0.8px)",
+            transform: "scale(1.55) translate(12%, -8%)",
+            transformOrigin: "center center",
+          }),
+        }}
+      />
+    </div>
+  );
+}
+
 export default function PlayPage() {
   const { game } = useParams<{ game: string }>();
   const router = useRouter();
@@ -444,30 +544,10 @@ export default function PlayPage() {
           <h2 style={{ marginTop: 4 }}>{round?.prompt}</h2>
 
           {round?.imageUrl && (
-            <div
-              style={{
-                overflow: "hidden",
-                borderRadius: 4,
-                ...(round.imageStyle === 'extreme' && { maxHeight: 260 }),
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={round.imageUrl}
-                alt="Guess the answer"
-                className="game-image"
-                style={{
-                  ...(round.imageStyle === 'hard' && {
-                    filter: "grayscale(85%) contrast(1.05)",
-                  }),
-                  ...(round.imageStyle === 'extreme' && {
-                    filter: "grayscale(100%) contrast(1.15) blur(0.8px)",
-                    transform: "scale(1.55) translate(12%, -8%)",
-                    transformOrigin: "center center",
-                  }),
-                }}
-              />
-            </div>
+            <GameImage
+              src={round.imageUrl}
+              imageStyle={round.imageStyle}
+            />
           )}
 
           {round?.options.map((opt, i) => {

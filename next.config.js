@@ -11,6 +11,10 @@
 // The browser always calls same-origin /api/... — Next.js rewrites them before they
 // leave the server, so there are no CORS headers to manage and the backend URL stays
 // server-side only (never reaches the browser bundle).
+//
+// Static game images (/geo/*, /movies/*, /logos/*) also live on the backend — the
+// frontend only carries a small seed set. Rewriting these paths ensures the full image
+// bank is always available without copying files into this repo.
 
 const backendUrl = process.env.BACKEND_URL;
 
@@ -41,9 +45,17 @@ const nextConfig = {
     if (!backendUrl) return [];
     const base = backendUrl.replace(/\/$/, "");
     return {
-      // Proxy every /api/* call to the backend before any local handler runs.
-      // This means there are NO local /api routes in this repo — the backend is the only source of truth.
-      beforeFiles: [{ source: "/api/:path*", destination: `${base}/api/:path*` }],
+      // beforeFiles rewrites run before Next.js checks its own public/ folder, so a
+      // locally-present file always wins and the rewrite only fires for missing assets.
+      beforeFiles: [
+        // Proxy every /api/* call to the backend — no local /api routes exist in this repo.
+        { source: "/api/:path*", destination: `${base}/api/:path*` },
+        // Proxy game image banks. The frontend ships a small seed set; the full library
+        // lives on the backend. These rewrites pull any missing image transparently.
+        { source: "/geo/:path*",    destination: `${base}/geo/:path*` },
+        { source: "/movies/:path*", destination: `${base}/movies/:path*` },
+        { source: "/logos/:path*",  destination: `${base}/logos/:path*` },
+      ],
     };
   },
 
