@@ -33,9 +33,14 @@ export function useStacksWallet(): StacksWallet {
   const modRef = useRef<ConnectMod | null>(null);
 
   // Pre-load module on mount so connect() can fire synchronously from click.
+  // defineCustomElements() must run before connect() or the wallet-picker web
+  // component is never registered and the modal silently never appears.
   useEffect(() => {
-    import("@stacks/connect")
-      .then((mod) => {
+    Promise.all([
+      import("@stacks/connect"),
+      import("@stacks/connect-ui/loader").then((m) => m.defineCustomElements(window)),
+    ])
+      .then(([mod]) => {
         modRef.current = mod;
         setAddress(readAddress(mod));
       })
