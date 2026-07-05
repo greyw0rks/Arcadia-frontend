@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { useArcade } from "../../../lib/useArcade";
 import { formatMultiplier, CHAINS, celoTokenMeta } from "../../../lib/contract";
-import { MAX_STAKE, difficultyFromStake, roundsFor } from "../../../lib/clientConfig";
+import { MAX_STAKE, difficultyFromStake, roundsFor } from "../../../lib/difficulty";
 import { useChain } from "../../../lib/chainContext";
 import { useStacksWallet } from "../../../lib/stacksWallet";
 import { ConnectControl } from "../../../components/ConnectControl";
@@ -23,106 +23,6 @@ interface RoundView {
 }
 
 type Phase = "setup" | "starting" | "playing" | "reveal" | "settling" | "done" | "error";
-
-// ---------------------------------------------------------------------------
-// GameImage — resilient image loader
-//
-// Images live on the backend; the frontend proxies them via next.config.js
-// rewrites. If a request still fails (cold-start latency, transient 5xx, etc.)
-// we retry automatically with exponential back-off before showing an error.
-// ---------------------------------------------------------------------------
-const MAX_RETRIES = 4;
-
-function GameImage({
-  src,
-  imageStyle,
-}: {
-  src: string;
-  imageStyle?: "hard" | "extreme";
-}) {
-  const [attempt, setAttempt] = useState(0);
-  const [failed, setFailed] = useState(false);
-  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Reset state whenever the src changes (new round / new image).
-  useEffect(() => {
-    setAttempt(0);
-    setFailed(false);
-    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-  }, [src]);
-
-  // Clean up any pending retry timer on unmount.
-  useEffect(() => () => { if (retryTimerRef.current) clearTimeout(retryTimerRef.current); }, []);
-
-  function handleError() {
-    if (attempt >= MAX_RETRIES) {
-      setFailed(true);
-      return;
-    }
-    // Exponential back-off: 500ms, 1s, 2s, 4s
-    const delay = 500 * Math.pow(2, attempt);
-    retryTimerRef.current = setTimeout(() => setAttempt((a) => a + 1), delay);
-  }
-
-  if (failed) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          height: 180,
-          borderRadius: 4,
-          background: "var(--surface, #1a1a2e)",
-          color: "var(--muted, #888)",
-          fontSize: 14,
-          gap: 10,
-        }}
-      >
-        <span>⚠ Image unavailable</span>
-        <button
-          className="btn ghost"
-          style={{ fontSize: 13, padding: "4px 12px" }}
-          onClick={() => { setAttempt(0); setFailed(false); }}
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
-  // Cache-bust on retry so the browser doesn't serve the cached 404/error.
-  const imgSrc = attempt === 0 ? src : `${src}?r=${attempt}`;
-
-  return (
-    <div
-      style={{
-        overflow: "hidden",
-        borderRadius: 4,
-        ...(imageStyle === "extreme" && { maxHeight: 260 }),
-      }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        key={imgSrc}
-        src={imgSrc}
-        alt="Guess the answer"
-        className="game-image"
-        onError={handleError}
-        style={{
-          ...(imageStyle === "hard" && {
-            filter: "grayscale(85%) contrast(1.05)",
-          }),
-          ...(imageStyle === "extreme" && {
-            filter: "grayscale(100%) contrast(1.15) blur(0.8px)",
-            transform: "scale(1.55) translate(12%, -8%)",
-            transformOrigin: "center center",
-          }),
-        }}
-      />
-    </div>
-  );
-}
 
 export default function PlayPage() {
   const { game } = useParams<{ game: string }>();
@@ -161,16 +61,13 @@ export default function PlayPage() {
   const [lastResult, setLastResult] = useState<"correct" | "wrong" | null>(null);
   const [finalBp, setFinalBp] = useState<number | null>(null);
   const [secsLeft, setSecsLeft] = useState(0);
+  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
+  const [imgRetry, setImgRetry] = useState(0);
+
+  const IMAGE_GAMES = new Set(["geo", "landmark", "logo", "movie"]);
 
   const answeringRef = useRef(false);
-  // Free one-time demo: no stake, no signature, no payout. Refs mirror the state so the (memoized)
-  // round/answer callbacks read the latest values without stale closures.
-  const [isDemo, setIsDemo] = useState(false);
-  const isDemoRef = useRef(false);
-  const multiplierRef = useRef(10000);
-  // Client-side record that this wallet already used its demo (server is authoritative; this is just
-  // for instant UI feedback). Read in an effect to avoid SSR/hydration mismatches.
-  const [demoUsedLocally, setDemoUsedLocally] = useState(false);
 
   // Load the selected game's metadata so the setup screen works for any module.
   useEffect(() => {
@@ -188,17 +85,6 @@ export default function PlayPage() {
       })
       .catch(() => {});
   }, [game]);
-
-  // Reflect whether the connected wallet has already spent its demo (this browser's record).
-  useEffect(() => {
-    if (typeof window === "undefined" || !address) {
-      setDemoUsedLocally(false);
-      return;
-    }
-    setDemoUsedLocally(
-      localStorage.getItem(`arcadia_demo_used_${chain}_${address.toLowerCase()}`) === "1"
-    );
-  }, [address, chain]);
 
   const fail = (msg: string) => {
     setError(msg);
@@ -219,46 +105,10 @@ export default function PlayPage() {
     }
   }
 
-  // ---- free demo: create a no-stake session and play, skipping all on-chain steps ----
-  async function beginDemo() {
-    setError("");
-    if (!address) return;
-    setPhase("starting");
-    try {
-      setStatus("Starting your free demo — no wallet signature needed…");
-      const res = await fetch("/api/session", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ game, player: address, chain, token, demo: true }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Demo unavailable.");
-      const sid = data.sessionId as `0x${string}`;
-      setSessionId(sid);
-      setMaxRounds(data.maxRounds);
-      setIsDemo(true);
-      isDemoRef.current = true;
-      if (typeof window !== "undefined") {
-        localStorage.setItem(`arcadia_demo_used_${chain}_${address.toLowerCase()}`, "1");
-      }
-      setDemoUsedLocally(true);
-      setStatus("Loading first question…");
-      await loadRound(sid);
-      setPhase("playing");
-    } catch (e: any) {
-      fail(e?.message ?? "Couldn't start demo.");
-    }
-  }
-
   // ---- start: create session, approve + stake on-chain, then load round 1 ----
   async function begin() {
     setError("");
     if (!address) return;
-    // Typing "demo" in the amount field starts the free one-time play instead of staking.
-    if (stake.trim().toLowerCase() === "demo") {
-      await beginDemo();
-      return;
-    }
     const amt = Number(stake);
     if (!(amt > 0)) {
       setError("Enter a stake greater than 0.");
@@ -314,11 +164,13 @@ export default function PlayPage() {
       }
       setRound(d.round);
       setMultiplierBp(d.multiplierBp);
-      multiplierRef.current = d.multiplierBp;
       setSelected(null);
       setCorrectIndex(null);
       setLastResult(null);
       setSecsLeft(d.round.timeLimitSec);
+      setImgLoaded(false);
+      setImgError(false);
+      setImgRetry(0);
       answeringRef.current = false;
       return;
     }
@@ -342,7 +194,6 @@ export default function PlayPage() {
         setCorrectIndex(d.correctIndex);
         setLastResult(d.result);
         setMultiplierBp(d.multiplierBp);
-        multiplierRef.current = d.multiplierBp;
         setPhase("reveal");
 
         // Play sound
@@ -369,12 +220,6 @@ export default function PlayPage() {
 
   // ---- finalize + settle ----
   async function finalize(sid: `0x${string}`) {
-    // Demo games never settle on-chain — just show the result with no payout.
-    if (isDemoRef.current) {
-      setFinalBp(multiplierRef.current);
-      setPhase("done");
-      return;
-    }
     try {
       setPhase("settling");
       setStatus("Signing final result…");
@@ -415,9 +260,6 @@ export default function PlayPage() {
 
   const up = multiplierBp >= 10000;
   const estPayout = finalBp != null ? (Number(stake) * 0.97 * finalBp) / 10000 : null;
-
-  // "demo" in the amount field => free one-time play (see beginDemo).
-  const demoTyped = stake.trim().toLowerCase() === "demo";
 
   // Live difficulty preview from the chosen stake (higher bet => harder session).
   const stakeNum = Number(stake) || 0;
@@ -466,45 +308,36 @@ export default function PlayPage() {
             <b>The higher your bet, the harder the session</b> — fewer seconds per question, tougher
             questions, and more rounds. Max bet is {MAX_STAKE[chain]} {stakeSymbol} per game.
           </p>
-          <p className="muted" style={{ marginTop: 8 }}>
-            New here? Type <b>demo</b> in the amount field for a one-time free play — no stake, no
-            signature, no payout, just the game. One demo per wallet.
-          </p>
           <div className="row" style={{ marginTop: 20, justifyContent: "flex-start", gap: 16 }}>
             <input
               className="input"
-              type="text"
-              inputMode="decimal"
-              placeholder={`${stakeSymbol} or "demo"`}
+              type="number"
+              min="0"
+              max={MAX_STAKE[chain]}
+              step="0.1"
               value={stake}
               onChange={(e) => setStake(e.target.value)}
             />
-            <span className="muted">{demoTyped ? "free demo" : `${stakeSymbol} stake`}</span>
+            <span className="muted">{stakeSymbol} stake</span>
             <button className="btn" onClick={begin}>
-              {demoTyped ? "Play Demo" : "Stake & Play"}
+              Stake &amp; Play
             </button>
           </div>
-          {demoTyped ? (
-            <div className="row" style={{ marginTop: 12, justifyContent: "flex-start", gap: 16 }}>
-              <span className="difficulty-pill easy">Demo</span>
-              <span className="muted">
-                {demoUsedLocally
-                  ? "This wallet has already used its free demo — enter an amount to play for real."
-                  : `Free one-time play — no transaction, no payout. Stake ${stakeSymbol} to play for real.`}
-              </span>
-            </div>
-          ) : (
-            <div className="row" style={{ marginTop: 12, justifyContent: "flex-start", gap: 16 }}>
-              <span className={`difficulty-pill ${diffLabel.toLowerCase()}`}>
-                Difficulty: <b>{diffLabel}</b>
-              </span>
-              <span className="muted">
-                {previewRounds} rounds · up to {formatMultiplier(10000 + 1000 * previewRounds)} · shorter
-                timer at higher bets
-              </span>
+          <div className="row" style={{ marginTop: 12, justifyContent: "flex-start", gap: 16 }}>
+            <span className={`difficulty-pill ${diffLabel.toLowerCase()}`}>
+              Difficulty: <b>{diffLabel}</b>
+            </span>
+            <span className="muted">
+              {previewRounds} rounds · up to {formatMultiplier(10000 + 1000 * previewRounds)} · shorter
+              timer at higher bets
+            </span>
+          </div>
+          {IMAGE_GAMES.has(game) && (
+            <div className="info" style={{ marginTop: 16, fontWeight: 700 }}>
+              ⚠️ This game loads images each round. Make sure you have a <strong>reliable and fast internet connection</strong> before playing — slow connections may cause images to fail mid-round.
             </div>
           )}
-          {overMax && !demoTyped && (
+          {overMax && (
             <div className="error">Max bet is {MAX_STAKE[chain]} {stakeSymbol} per game.</div>
           )}
           {error && <div className="error">{error}</div>}
@@ -544,10 +377,81 @@ export default function PlayPage() {
           <h2 style={{ marginTop: 4 }}>{round?.prompt}</h2>
 
           {round?.imageUrl && (
-            <GameImage
-              src={round.imageUrl}
-              imageStyle={round.imageStyle}
-            />
+            <div
+              style={{
+                overflow: "hidden",
+                borderRadius: 4,
+                position: "relative",
+                ...(round.imageStyle === 'extreme' && { maxHeight: 260 }),
+              }}
+            >
+              {!imgLoaded && !imgError && (
+                <div style={{
+                  width: "100%",
+                  height: 220,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "var(--bg-alt)",
+                  border: "8px solid var(--border)",
+                  margin: "20px 0 28px",
+                  fontSize: 14,
+                  color: "var(--muted)",
+                }}>
+                  Loading image…
+                </div>
+              )}
+              {imgError && (
+                <div style={{
+                  width: "100%",
+                  height: 220,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: "var(--bg-alt)",
+                  border: "8px solid var(--border)",
+                  margin: "20px 0 28px",
+                  gap: 12,
+                }}>
+                  <span style={{ fontSize: 28 }}>🖼️</span>
+                  <span style={{ fontSize: 13, color: "var(--muted)", textAlign: "center", maxWidth: 240 }}>
+                    Image failed to load.
+                  </span>
+                  <button
+                    className="btn"
+                    style={{ fontSize: 13, padding: "8px 18px" }}
+                    onClick={() => {
+                      setImgError(false);
+                      setImgLoaded(false);
+                      setImgRetry((n) => n + 1);
+                      if (round) setSecsLeft(round.timeLimitSec);
+                    }}
+                  >
+                    ↺ Reload image
+                  </button>
+                </div>
+              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imgRetry > 0 ? `${round.imageUrl}?r=${imgRetry}` : round.imageUrl}
+                alt="Guess the answer"
+                className="game-image"
+                style={{
+                  display: imgLoaded ? "block" : "none",
+                  ...(round.imageStyle === 'hard' && {
+                    filter: "grayscale(85%) contrast(1.05)",
+                  }),
+                  ...(round.imageStyle === 'extreme' && {
+                    filter: "grayscale(100%) contrast(1.15) blur(0.8px)",
+                    transform: "scale(1.55) translate(12%, -8%)",
+                    transformOrigin: "center center",
+                  }),
+                }}
+                onLoad={() => setImgLoaded(true)}
+                onError={() => setImgError(true)}
+              />
+            </div>
           )}
 
           {round?.options.map((opt, i) => {
@@ -570,24 +474,15 @@ export default function PlayPage() {
         </div>
       ) : phase === "done" ? (
         <div className="panel center">
-          <p className="muted">{isDemo ? "Demo result" : "Final multiplier"}</p>
+          <p className="muted">Final multiplier</p>
           <div className={`multiplier ${up ? "up" : "down"}`}>
             {formatMultiplier(finalBp ?? multiplierBp)}
           </div>
-          {isDemo ? (
+          {estPayout != null && (
             <p style={{ fontSize: 18, marginTop: 16 }}>
-              That was your free demo — <b>no stake, no payout</b>.{" "}
-              <span className="muted">
-                Enter an amount of {stakeSymbol} to play for real and win up to your final multiplier.
-              </span>
+              Payout ≈ <b>{estPayout.toFixed(3)} {stakeSymbol}</b>{" "}
+              <span className="muted">(staked {stake}, settled on-chain)</span>
             </p>
-          ) : (
-            estPayout != null && (
-              <p style={{ fontSize: 18, marginTop: 16 }}>
-                Payout ≈ <b>{estPayout.toFixed(3)} {stakeSymbol}</b>{" "}
-                <span className="muted">(staked {stake}, settled on-chain)</span>
-              </p>
-            )
           )}
           <div className="row center" style={{ justifyContent: "center", gap: 12, marginTop: 24 }}>
             <button className="btn" onClick={() => router.replace("/games")}>
@@ -599,14 +494,10 @@ export default function PlayPage() {
                 setPhase("setup");
                 setFinalBp(null);
                 setMultiplierBp(10000);
-                multiplierRef.current = 10000;
                 setSessionId(null);
-                setIsDemo(false);
-                isDemoRef.current = false;
-                if (isDemo) setStake("1"); // demo can't be replayed; reset to a real stake
               }}
             >
-              {isDemo ? "Play for real" : "Play again"}
+              Play again
             </button>
           </div>
         </div>
@@ -615,7 +506,7 @@ export default function PlayPage() {
           <h2>Something went wrong</h2>
           <p className="error">{error}</p>
 
-          {sessionId && !isDemo && (
+          {sessionId && (
             <div style={{ marginTop: 20 }}>
               <p className="info">
                 Your stake is safe! After 1 hour, you can request a refund to get your money back.
@@ -627,7 +518,7 @@ export default function PlayPage() {
             <button className="btn" onClick={() => router.replace("/games")}>
               Back to lobby
             </button>
-            {sessionId && !isDemo && (
+            {sessionId && (
               <button
                 className="btn"
                 style={{ background: "var(--green)" }}
@@ -638,7 +529,7 @@ export default function PlayPage() {
             )}
           </div>
 
-          {sessionId && !isDemo && (
+          {sessionId && (
             <p className="muted" style={{ marginTop: 16, fontSize: 13, maxWidth: 500 }}>
               The refund button will work after your session expires (1 hour from when you started).
               It will return your stake minus the 3% entry fee.

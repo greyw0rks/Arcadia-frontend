@@ -1,69 +1,35 @@
-/* Mobile App UI — GoodQuest editorial dark theme
-   Only applies on ≤768 px; desktop stays neo-brutalism. */
+/* Mobile App UI - Dark Theme (Heal & Grow inspired) */
+/* Only applies to mobile devices - desktop stays neo-brutalism */
 
 @media (max-width: 768px) {
-
-  /* ── Design tokens (mirrors GoodQuest) ─────────────────────────────── */
+  /* Dark theme colors for mobile */
   :root {
-    --mobile-bg:           #14120F;   /* warm near-black canvas */
-    --mobile-surface:      #1C1A16;   /* raised card */
-    --mobile-elevated:     #24211C;   /* elevated / modal */
-    --mobile-text-primary: #EDE8DF;   /* cream */
-    --mobile-text-secondary:#A39C8E;  /* warm muted */
-    --mobile-text-muted:   #6B665B;   /* faint */
-    --mobile-border:       #322E27;   /* hairline */
-    --mobile-accent:       #FF6B9D;   /* keep Arcadia pink for game cues */
-    --mobile-green:        #7FB996;   /* sage-green (correct / success) */
-    --mobile-red:          #D98A7B;   /* muted terracotta (wrong / error) */
-    --mobile-gold:         #C9A671;   /* warm tan (multiplier up) */
-
-    /* Override base desktop vars so inline var(--card) / var(--border) /
-       var(--text) etc. automatically resolve to dark values on mobile —
-       fixes FAQ accordion and profile stat cards without touching JSX. */
-    --bg:        #14120F;
-    --bg-alt:    #24211C;
-    --card:      #1C1A16;
-    --border:    #322E27;
-    --text:      #EDE8DF;
-    --text-dim:  #A39C8E;
-    --shadow:    none;
-    --shadow-sm: none;
-    --shadow-lg: none;
-    --shadow-brutal: none;
-    --shadow-xl: none;
+    --mobile-bg: #111111;
+    --mobile-surface: #1A1A1A;
+    --mobile-text-primary: #F2ECE6;
+    --mobile-text-secondary: #B5AEA7;
+    --mobile-border: #2A2A2A;
+    --mobile-accent: #FF6B9D;
   }
 
-  /* ── Root coverage — kills the white strip below content ───────────── */
-  html {
-    background: var(--mobile-bg);
-  }
-
+  /* Apply dark theme to body on mobile */
   body {
     background: var(--mobile-bg);
     color: var(--mobile-text-primary);
-    font-family: 'Inter', system-ui, sans-serif;
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
   }
 
-  /* Remove all neo-brutalism hard shadows on mobile */
-  * {
-    box-shadow: none !important;
-  }
-
-  /* ── Container ──────────────────────────────────────────────────────── */
+  /* Container adjustments */
   .container {
     background: var(--mobile-bg);
-    padding: 16px 16px 90px;
-    min-height: 100dvh;
+    padding: 16px 16px 80px;
   }
 
-  /* ── Topbar ─────────────────────────────────────────────────────────── */
+  /* Topbar - minimal dark style */
   .topbar {
     background: var(--mobile-bg);
     border-bottom: 1px solid var(--mobile-border);
-    padding: 14px 0 18px;
-    margin-bottom: 20px;
+    padding: 16px 0;
+    margin-bottom: 24px;
   }
 
   .brand {
@@ -71,12 +37,10 @@
     border: none;
     box-shadow: none;
     color: var(--mobile-text-primary);
-    font-size: 22px;
-    font-weight: 600;
+    font-size: 24px;
     padding: 0;
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: serif;
     letter-spacing: -0.02em;
-    text-transform: uppercase;
   }
 
   .brand::before {
@@ -88,17 +52,15 @@
     box-shadow: none;
   }
 
-  /* ── Hero ────────────────────────────────────────────────────────────── */
+  /* Hero - dark minimalist */
   .hero {
     background: var(--mobile-surface);
     border: 1px solid var(--mobile-border);
-    border-radius: 18px;
+    border-radius: 16px;
     box-shadow: none;
-    padding: 28px 20px;
-    margin-bottom: 24px;
+    padding: 32px 24px;
+    margin-bottom: 32px;
     transform: none;
-    position: relative;
-    overflow: hidden;
   }
 
   .hero::before,
@@ -107,54 +69,36 @@
   }
 
   .hero h1 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 28px;
-    font-weight: 600;
+    font-size: 32px;
     color: var(--mobile-text-primary);
     text-shadow: none;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
-    margin-bottom: 10px;
+    font-family: serif;
+    letter-spacing: -0.03em;
   }
 
   .hero .tagline {
     color: var(--mobile-text-secondary);
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.6;
-    font-weight: 400;
-    margin-bottom: 14px;
   }
 
   .hero .mechanic {
-    background: var(--mobile-elevated);
+    background: var(--mobile-bg);
     border: 1px solid var(--mobile-border);
     border-radius: 12px;
     box-shadow: none;
-    padding: 10px 16px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--mobile-text-secondary);
-    flex-wrap: wrap;
-    gap: 6px;
+    padding: 12px 20px;
   }
 
-  .hero .mechanic .up {
-    color: var(--mobile-green);
-  }
-
-  .hero .mechanic .down {
-    color: var(--mobile-red);
-  }
-
-  /* ── Cards ────────────────────────────────────────────────────────────── */
+  /* Cards - rounded dark style */
   .card {
     background: var(--mobile-surface);
     border: 1px solid var(--mobile-border);
-    border-radius: 18px;
+    border-radius: 16px;
     box-shadow: none;
-    padding: 18px 14px;
+    padding: 20px 16px;
     min-height: auto;
-    transition: border-color 0.2s ease, transform 0.2s ease;
+    transition: transform 0.2s ease;
   }
 
   .card::before,
@@ -163,54 +107,48 @@
   }
 
   .card.playable:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     border-color: var(--mobile-accent);
   }
 
   .card.playable:active {
     transform: translateY(0);
+    box-shadow: none;
   }
 
   .card .game-icon-wrapper {
-    width: 52px;
-    height: 52px;
-    margin-bottom: 10px;
-    background: var(--mobile-elevated);
+    width: 56px;
+    height: 56px;
+    margin-bottom: 12px;
+    background: var(--mobile-bg);
     border: 1px solid var(--mobile-border);
-    border-radius: 14px;
+    border-radius: 12px;
     padding: 8px;
   }
 
   .card h3 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 16px;
     color: var(--mobile-text-primary);
+    font-family: serif;
     letter-spacing: -0.01em;
-    text-transform: none;
-    margin-bottom: 6px;
   }
 
   .card p {
     color: var(--mobile-text-secondary);
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.5;
-    font-weight: 400;
-    margin-bottom: 10px;
   }
 
-  /* ── Badges ──────────────────────────────────────────────────────────── */
+  /* Badges - rounded style */
   .badge {
-    background: transparent;
-    border: 1px solid var(--mobile-border);
-    border-radius: 999px;
+    background: var(--mobile-accent);
+    border: none;
+    border-radius: 20px;
     box-shadow: none;
-    padding: 4px 12px;
+    padding: 6px 14px;
     font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    color: var(--mobile-text-secondary);
-    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .badge::before {
@@ -218,38 +156,25 @@
   }
 
   .badge.live {
-    border-color: var(--mobile-green);
-    color: var(--mobile-green);
-    background: transparent;
-    animation: none;
-  }
-
-  .badge.live::after {
-    content: "●";
-    margin-left: 5px;
-    animation: blink 1.5s infinite;
-    font-size: 8px;
+    background: var(--mobile-accent);
+    color: var(--mobile-text-primary);
   }
 
   .badge.soon {
-    border-color: var(--mobile-border);
-    color: var(--mobile-text-muted);
-    background: transparent;
+    background: var(--mobile-border);
+    color: var(--mobile-text-secondary);
   }
 
-  /* ── Buttons ─────────────────────────────────────────────────────────── */
+  /* Buttons - rounded dark style */
   .btn {
-    background: var(--mobile-text-primary);
-    border: none;
-    border-radius: 999px;
+    background: var(--mobile-surface);
+    border: 1px solid var(--mobile-border);
+    border-radius: 12px;
     box-shadow: none;
     padding: 14px 24px;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--mobile-bg);
-    transition: opacity 0.15s, transform 0.1s;
+    font-size: 15px;
+    color: var(--mobile-text-primary);
+    transition: all 0.2s ease;
   }
 
   .btn::before,
@@ -260,40 +185,32 @@
   .btn:hover {
     transform: none;
     box-shadow: none;
-    opacity: 0.88;
+    background: var(--mobile-accent);
+    border-color: var(--mobile-accent);
   }
 
   .btn:active {
     transform: scale(0.98);
-  }
-
-  .btn:disabled {
-    background: var(--mobile-elevated);
-    color: var(--mobile-text-muted);
-    opacity: 1;
+    box-shadow: none;
   }
 
   .btn.ghost {
     background: transparent;
     border: 1px solid var(--mobile-border);
-    color: var(--mobile-text-primary);
-    border-radius: 999px;
   }
 
   .btn.ghost:hover {
     background: var(--mobile-surface);
-    border-color: var(--mobile-text-muted);
-    opacity: 1;
+    border-color: var(--mobile-text-secondary);
   }
 
-  /* ── Panel ────────────────────────────────────────────────────────────── */
+  /* Panel - dark rounded */
   .panel {
     background: var(--mobile-surface);
     border: 1px solid var(--mobile-border);
-    border-radius: 18px;
+    border-radius: 16px;
     box-shadow: none;
-    padding: 22px 18px;
-    margin-top: 8px;
+    padding: 24px 20px;
   }
 
   .panel::before,
@@ -301,29 +218,15 @@
     display: none;
   }
 
-  .panel h2 {
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--mobile-text-primary);
-    letter-spacing: -0.02em;
-    text-transform: none;
-    margin-bottom: 10px;
-  }
-
-  /* ── Answer options ──────────────────────────────────────────────────── */
+  /* Options - rounded style */
   .option {
-    background: var(--mobile-elevated);
+    background: var(--mobile-bg);
     border: 1px solid var(--mobile-border);
-    border-radius: 14px;
+    border-radius: 12px;
     box-shadow: none;
-    padding: 15px 18px;
-    margin: 10px 0;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--mobile-text-primary);
-    transition: border-color 0.15s, background 0.15s;
-    text-align: left;
+    padding: 16px 20px;
+    margin: 12px 0;
+    transition: all 0.2s ease;
   }
 
   .option::before,
@@ -338,64 +241,41 @@
     border-color: var(--mobile-accent);
   }
 
-  .option:active:not(:disabled) {
-    transform: scale(0.99);
-  }
-
   .option.correct {
-    background: rgba(127, 185, 150, 0.12);
-    border-color: var(--mobile-green);
-    color: var(--mobile-green);
+    background: #1a3a2a;
+    border-color: #2a5a3a;
     box-shadow: none;
-    animation: none;
   }
 
   .option.wrong {
-    background: rgba(217, 138, 123, 0.12);
-    border-color: var(--mobile-red);
-    color: var(--mobile-red);
+    background: #3a1a1a;
+    border-color: #5a2a2a;
     box-shadow: none;
-    animation: none;
   }
 
-  /* ── Input ────────────────────────────────────────────────────────────── */
+  /* Input - dark rounded */
   .input {
-    background: var(--mobile-elevated);
+    background: var(--mobile-bg);
     border: 1px solid var(--mobile-border);
     border-radius: 12px;
     box-shadow: none;
     color: var(--mobile-text-primary);
     padding: 14px 16px;
-    font-size: 16px;
-    font-weight: 500;
-    font-family: 'Inter', system-ui, sans-serif;
-    width: 160px;
-  }
-
-  .input::placeholder {
-    color: var(--mobile-text-muted);
   }
 
   .input:focus {
-    outline: none;
     box-shadow: none;
     border-color: var(--mobile-accent);
     background: var(--mobile-surface);
-    transform: none;
   }
 
-  .input:hover {
-    background: var(--mobile-surface);
-  }
-
-  /* ── Timer ────────────────────────────────────────────────────────────── */
+  /* Timer - rounded */
   .timer-track {
-    background: var(--mobile-elevated);
-    border: none;
-    border-radius: 999px;
+    background: var(--mobile-bg);
+    border: 1px solid var(--mobile-border);
+    border-radius: 8px;
     box-shadow: none;
-    height: 4px;
-    margin: 16px 0 20px;
+    height: 8px;
   }
 
   .timer-track::before,
@@ -405,7 +285,7 @@
 
   .timer-fill {
     background: var(--mobile-accent);
-    border-radius: 999px;
+    border-radius: 8px;
     box-shadow: none;
   }
 
@@ -413,50 +293,31 @@
     display: none;
   }
 
-  /* ── Multiplier ──────────────────────────────────────────────────────── */
+  /* Multiplier - clean style */
   .multiplier {
-    font-family: 'Fraunces', Georgia, serif;
     color: var(--mobile-text-primary);
     text-shadow: none;
-    letter-spacing: -0.03em;
-    font-size: 56px;
+    font-family: serif;
   }
 
   .multiplier.up {
-    color: var(--mobile-gold);
+    color: #6BCF7F;
   }
 
   .multiplier.down {
-    color: var(--mobile-red);
+    color: #FF6B6B;
   }
 
-  /* ── Difficulty pill ────────────────────────────────────────────────── */
-  .difficulty-pill {
-    background: var(--mobile-elevated);
-    border: 1px solid var(--mobile-border);
-    border-radius: 999px;
-    padding: 4px 12px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-
-  .difficulty-pill.easy  { color: var(--mobile-green); border-color: var(--mobile-green); }
-  .difficulty-pill.medium { color: var(--mobile-gold);  border-color: var(--mobile-gold); }
-  .difficulty-pill.hard  { color: var(--mobile-red);   border-color: var(--mobile-red); }
-
-  /* ── Grid ────────────────────────────────────────────────────────────── */
+  /* Grid - maintain 2 columns but with spacing */
   .grid {
-    gap: 12px;
+    gap: 16px;
   }
 
-  /* ── Progress dots ───────────────────────────────────────────────────── */
+  /* Progress dots - rounded */
   .progress-dot {
-    border: 1px solid var(--mobile-border);
+    border: 2px solid var(--mobile-border);
     border-radius: 50%;
-    background: var(--mobile-elevated);
     box-shadow: none;
-    width: 18px;
-    height: 18px;
   }
 
   .progress-dot.active {
@@ -467,94 +328,87 @@
   }
 
   .progress-dot.complete {
-    background: var(--mobile-green);
-    border-color: var(--mobile-green);
+    background: #6BCF7F;
+    border-color: #6BCF7F;
     box-shadow: none;
-    transform: scale(1.05);
   }
 
-  /* ── Game image ──────────────────────────────────────────────────────── */
+  /* Game image - rounded */
   .game-image {
     border: 1px solid var(--mobile-border);
-    border-radius: 14px;
+    border-radius: 12px;
     box-shadow: none;
   }
 
-  .game-image:hover {
-    transform: none;
-  }
-
-  /* ── Text utilities ──────────────────────────────────────────────────── */
+  /* Text colors */
   .muted {
     color: var(--mobile-text-secondary);
-    font-size: 13px;
-    font-weight: 400;
   }
 
   .error {
-    color: var(--mobile-red);
+    color: #FF6B6B;
   }
 
   .success {
-    color: var(--mobile-green);
+    color: #6BCF7F;
   }
 
   .info {
-    background: var(--mobile-elevated);
+    background: var(--mobile-surface);
     border: 1px solid var(--mobile-border);
     border-radius: 12px;
     color: var(--mobile-text-secondary);
-    font-size: 13px;
-    padding: 12px 14px;
   }
 
-  /* ── Social links ────────────────────────────────────────────────────── */
+  /* Remove all hard shadows and borders on mobile */
+  * {
+    box-shadow: none !important;
+  }
+
+  /* Social links - rounded */
   .social-links a {
     border-radius: 12px;
   }
 }
 
-/* ── Mobile bottom nav ────────────────────────────────────────────────── */
+/* Bottom Navigation for Mobile */
 @media (max-width: 768px) {
   .mobile-bottom-nav {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(20, 18, 15, 0.90);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-top: 1px solid #322E27;
+    background: var(--mobile-surface);
+    border-top: 1px solid var(--mobile-border);
     display: flex;
     justify-content: space-around;
-    padding: 10px 0 calc(10px + env(safe-area-inset-bottom));
+    padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
     z-index: 1000;
   }
 
   .mobile-bottom-nav button {
     background: transparent;
     border: none;
-    color: #6B665B;
-    font-size: 22px;
-    padding: 6px 14px;
+    color: var(--mobile-text-secondary);
+    font-size: 24px;
+    padding: 8px 16px;
     cursor: pointer;
-    transition: color 0.15s;
+    transition: all 0.2s;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
   }
 
   .mobile-bottom-nav button span {
-    font-size: 9px;
-    font-weight: 600;
+    font-size: 10px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-family: 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.05em;
   }
 
   .mobile-bottom-nav button.active {
-    color: #EDE8DF;
+    color: var(--mobile-accent);
   }
 
   .mobile-bottom-nav button:active {

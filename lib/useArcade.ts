@@ -16,9 +16,8 @@ import {
 import {
   STACKS_ARCADE_CONTRACT,
   stacksNetwork,
-  stacksReadNetwork,
   CHAINS,
-  CELO_TOKENS,
+  resolveTokenMeta,
   DEFAULT_CELO_TOKEN,
   type ChainId,
   type CeloToken,
@@ -40,18 +39,17 @@ export interface ArcadeApi {
 }
 
 // ---------------------------------------------------------------------------
-// Celo (EVM) — wagmi/viem, with the ERC-20 approve step.
+// EVM (Celo + Base) — wagmi/viem, with the ERC-20 approve step.
 // ---------------------------------------------------------------------------
 
-function useEvmArcade(token: CeloToken): ArcadeApi {
+function useEvmArcade(chain: ChainId, token: CeloToken): ArcadeApi {
   const { address } = useAccount();
   const publicClient = usePublicClient();
   const { writeContractAsync } = useWriteContract();
 
-  // Which QuizArcade instance + ERC-20 + decimals this session targets. Each Celo token (cUSD/USDC/
-  // USDT) has its own deployed contract, so the address the player approves and stakes against — and
-  // the decimals used to parse the stake — depend on the selected token.
-  const { arcadeAddress, tokenAddress, decimals } = CELO_TOKENS[token];
+  // Resolve the arcade contract, stake token, and decimals for this chain+token combination.
+  // Celo has three instances (USDM/USDC/USDT); Base has one (USDC). resolveTokenMeta handles both.
+  const { arcadeAddress, tokenAddress, decimals } = resolveTokenMeta(chain, token);
 
   async function ensureAllowance(stakeWei: bigint) {
     if (!address || !publicClient) throw new Error("wallet not connected");
@@ -67,7 +65,6 @@ function useEvmArcade(token: CeloToken): ArcadeApi {
       abi: ERC20_ABI,
       functionName: "approve",
       args: [arcadeAddress, stakeWei],
-      type: "legacy", // MiniPay requires legacy transactions (no EIP-1559)
     });
     await publicClient.waitForTransactionReceipt({ hash });
   }
@@ -82,7 +79,6 @@ function useEvmArcade(token: CeloToken): ArcadeApi {
         abi: ARCADE_ABI,
         functionName: "startSession",
         args: [sessionId, stakeWei, maxRounds],
-        type: "legacy", // MiniPay requires legacy transactions (no EIP-1559)
       });
       await publicClient.waitForTransactionReceipt({ hash });
     },
@@ -93,7 +89,6 @@ function useEvmArcade(token: CeloToken): ArcadeApi {
         abi: ARCADE_ABI,
         functionName: "settle",
         args: [sessionId, BigInt(multiplierBp), signature],
-        type: "legacy", // MiniPay requires legacy transactions (no EIP-1559)
       });
       await publicClient.waitForTransactionReceipt({ hash });
     },
@@ -104,7 +99,6 @@ function useEvmArcade(token: CeloToken): ArcadeApi {
         abi: ARCADE_ABI,
         functionName: "cancelExpired",
         args: [sessionId],
-        type: "legacy", // MiniPay requires legacy transactions (no EIP-1559)
       });
       await publicClient.waitForTransactionReceipt({ hash });
     },
@@ -139,7 +133,7 @@ async function readSession(sessionId: `0x${string}`): Promise<any | null> {
     contractName: STX_CONTRACT_NAME,
     functionName: "get-session",
     functionArgs: [bufferCV(hexToBytes(sessionId))],
-    network: await stacksReadNetwork(),
+    network: await stacksNetwork(),
     senderAddress: STX_CONTRACT_ADDR,
   });
   if (res.type === ClarityType.OptionalNone) return null;
@@ -147,26 +141,19 @@ async function readSession(sessionId: `0x${string}`): Promise<any | null> {
 }
 
 // Poll the read-only state until `predicate` holds (the chain confirmed our call) or we time out.
-// Backs off on errors (e.g. a 429 from Hiro) so a rate-limited client doesn't hammer the API with a
-// fixed-interval retry storm. Total budget ≈ tries × baseIntervalMs (~2min) before timing out.
 async function pollUntil(
   predicate: (session: any | null) => boolean,
   sessionId: `0x${string}`,
-  { tries = 24, baseIntervalMs = 5000, maxIntervalMs = 20000 } = {}
+  { tries = 40, intervalMs = 3000 } = {}
 ): Promise<void> {
-  let backoff = baseIntervalMs;
   for (let i = 0; i < tries; i++) {
-    let errored = false;
     try {
       const s = await readSession(sessionId);
       if (predicate(s)) return;
     } catch {
-      errored = true; // transient API/rate-limit error — keep polling, but back off
+      /* transient API error — keep polling */
     }
-    if (i < tries - 1) {
-      await new Promise((r) => setTimeout(r, errored ? backoff : baseIntervalMs));
-      backoff = errored ? Math.min(backoff * 2, maxIntervalMs) : baseIntervalMs;
-    }
+    await new Promise((r) => setTimeout(r, intervalMs));
   }
   throw new Error("Timed out waiting for the Stacks transaction to confirm.");
 }
@@ -267,7 +254,7 @@ function useStacksArcade(): ArcadeApi {
 // ---------------------------------------------------------------------------
 
 export function useArcade(chain: ChainId, token: CeloToken = DEFAULT_CELO_TOKEN): ArcadeApi {
-  const evm = useEvmArcade(token);
+  const evm = useEvmArcade(chain, token);
   const stacks = useStacksArcade();
   return chain === "stacks" ? stacks : evm;
 }

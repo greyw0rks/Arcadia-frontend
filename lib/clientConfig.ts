@@ -5,7 +5,7 @@
 
 import type { ChainId } from "./contract";
 
-export const MAX_STAKE: Record<ChainId, number> = { celo: 1, stacks: 1 };
+export const MAX_STAKE: Record<ChainId, number> = { celo: 1, base: 1, stacks: 1 };
 export const MIN_ROUNDS = 7;
 export const MAX_ROUNDS = 15;
 

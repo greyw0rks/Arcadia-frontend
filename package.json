@@ -1,13 +1,20 @@
 {
-  "name": "@greyw0rks/arcadia-frontend",
-  "version": "1.1.2",
+  "name": "arcadia-frontend",
+  "version": "1.0.0",
   "private": true,
-  "description": "Arcadia frontend — pure client UI, no server code. Proxies /api/* to arcadia-backend.",
+  "description": "Arcadia — the multi-chain quiz arcade. Frontend UI; API proxied to arcadia-backend on Railway.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/greyw0rks/Arcadia-frontend.git"
+  },
   "scripts": {
-    "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start"
   },
+  "author": "greyw0rks",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.11",
     "@stacks/connect": "^8.2.6",

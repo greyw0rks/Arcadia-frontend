@@ -163,6 +163,14 @@ export default function GamesPage() {
         <p className="muted" style={{ fontSize: 14, marginBottom: 12 }}>
           Built on Celo · <a href="/faq" style={{ textDecoration: "underline" }}>FAQ</a>
         </p>
+        <p className="muted" style={{ fontSize: 12, marginBottom: 4 }}>
+          &copy; {new Date().getFullYear()} greyw0rks. All rights reserved.
+        </p>
+        <p className="muted" style={{ fontSize: 11, opacity: 0.6 }}>
+          Arcadia, its game mechanics, question banks, and scoring engine are proprietary.
+          Unauthorised copying, cloning, or redistribution is strictly prohibited.
+          <a href="/terms" style={{ marginLeft: 6, textDecoration: "underline" }}>Terms &amp; IP</a>
+        </p>
       </div>
 
       {showTutorial && <TutorialModal onClose={handleTutorialClose} />}

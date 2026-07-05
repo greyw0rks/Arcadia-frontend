@@ -4,19 +4,14 @@ import "./mobile.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "Arcadia — stake-to-play games Onchain",
-  description: "An arcade of skill games where your stake rides a live multiplier. Built onchain.",
+  title: "Arcadia — stake-to-play games on Celo",
+  description: "An arcade of skill games where your stake rides a live multiplier. Built on Celo.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
       { url: "/logo.svg", type: "image/svg+xml" },
     ],
     apple: "/logo.svg",
-  },
-  other: {
-    // Talent Protocol verification (update with your actual meta tag)
-    "talentapp:project_verification":
-      "e9fe66e1565442422ba268d40f55c48dfdd3d03df673083108e93cb734e7450bd510dbc88ac2147957f584848222f449bf709d54d438862782de61ae9b768756",
   },
 };
 
@@ -27,12 +22,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/logo.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/logo.svg" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <body>
         <Providers>{children}</Providers>
