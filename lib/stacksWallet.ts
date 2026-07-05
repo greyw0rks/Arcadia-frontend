@@ -7,71 +7,37 @@ export interface StacksWallet {
   isConnected: boolean;
   connect: () => void;
   disconnect: () => void;
-  noWallet: boolean; // true when no working Stacks provider is found
+  noWallet: boolean;
 }
 
 const STORAGE_KEY = "arcadia:stacks:address";
 
-// Test whether a provider's request() is real by calling it.
-// Returns the provider if usable, null if it throws "not implemented".
-// NOTE: request() may throw SYNCHRONOUSLY, so we must use try/catch, not .catch().
-function testProvider(p: any): any | null {
-  if (!p || typeof p.request !== "function") return null;
-  try {
-    // A real provider returns a Promise; a stub throws synchronously.
-    const ret = p.request({ method: "getAddresses" });
-    // If we got here without throwing, the provider is real — return it.
-    // The returned promise may still reject (e.g. user cancelled), but that's fine.
-    if (ret && typeof ret.then === "function") return p;
-    return null;
-  } catch (e: any) {
-    // Stub throws "request function is not implemented" or similar.
-    return null;
-  }
-}
-
+// Provider detection — check function existence ONLY.
+// Never call request() here; every call sends a real message to the wallet.
 function getProvider(): any | null {
   if (typeof window === "undefined") return null;
   const w = window as any;
-  return (
-    testProvider(w.LeatherProvider) ??
-    testProvider(w.XverseProviders?.StacksProvider) ??
-    testProvider(w.StacksProvider) ??
-    null
-  );
-}
-
-// Safely call provider.request — handles both sync throws and async rejections.
-async function safeRequest(provider: any, method: string): Promise<any> {
-  try {
-    return await Promise.resolve(provider.request({ method }));
-  } catch {
-    return null;
-  }
+  if (typeof w.LeatherProvider?.request === "function")              return w.LeatherProvider;
+  if (typeof w.XverseProviders?.StacksProvider?.request === "function") return w.XverseProviders.StacksProvider;
+  if (typeof w.StacksProvider?.request === "function")               return w.StacksProvider;
+  return null;
 }
 
 function pickStxAddress(res: any): string | null {
-  if (!res) return null;
-  const addrs: any[] =
-    res?.result?.addresses ?? res?.addresses ?? [];
-  const stx = addrs.find(
-    (a: any) => a?.symbol === "STX" || a?.address?.startsWith("S")
-  );
-  return stx?.address ?? null;
+  const addrs: any[] = res?.result?.addresses ?? res?.addresses ?? [];
+  return addrs.find((a: any) => a?.symbol === "STX" || a?.address?.startsWith("S"))?.address ?? null;
 }
 
 export function useStacksWallet(): StacksWallet {
-  const [address, setAddress] = useState<string | null>(null);
+  const [address, setAddress]   = useState<string | null>(null);
   const [noWallet, setNoWallet] = useState(false);
 
   useEffect(() => {
-    // Restore cached address on mount.
+    // Restore cached address — no wallet request needed on mount.
     const cached = localStorage.getItem(STORAGE_KEY);
-    if (cached) setAddress(cached);
-
-    // Check if any working provider exists.
-    const p = getProvider();
-    if (!p && !cached) setNoWallet(true);
+    if (cached) { setAddress(cached); return; }
+    // Only flag noWallet if provider check on mount shows nothing.
+    if (!getProvider()) setNoWallet(true);
   }, []);
 
   const connect = useCallback(async () => {
@@ -82,11 +48,14 @@ export function useStacksWallet(): StacksWallet {
       return;
     }
     setNoWallet(false);
-    const res = await safeRequest(provider, "getAddresses");
-    const addr = pickStxAddress(res);
-    if (addr) {
-      localStorage.setItem(STORAGE_KEY, addr);
-      setAddress(addr);
+    try {
+      // request() may throw synchronously (stub) or return a rejected Promise.
+      // Wrapping in Promise.resolve handles both.
+      const res = await Promise.resolve(provider.request({ method: "getAddresses" }));
+      const addr = pickStxAddress(res);
+      if (addr) { localStorage.setItem(STORAGE_KEY, addr); setAddress(addr); }
+    } catch {
+      // Wallet rejected or user cancelled — do nothing.
     }
   }, []);
 
