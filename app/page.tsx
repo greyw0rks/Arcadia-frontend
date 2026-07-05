@@ -214,6 +214,16 @@ function LandingHub() {
           transition: transform 0.12s, box-shadow 0.12s; overflow: hidden;
         }
         .chain-card:hover { transform: translate(-4px,-4px); box-shadow: 12px 12px 0 #0F0F0F; }
+        .chain-card.disabled {
+          opacity: 0.45; pointer-events: none; cursor: default;
+          filter: grayscale(0.6);
+        }
+        .coming-soon-badge {
+          display: inline-block; font-size: 0.65rem; font-weight: 900;
+          text-transform: uppercase; letter-spacing: 0.12em;
+          padding: 4px 10px; border: 2px solid #0F0F0F;
+          background: #E0E7FF; color: #0F0F0F; margin-bottom: 16px;
+        }
         .chain-card-top { padding: 28px 28px 20px; }
         .chain-card-accent { height: 8px; }
         .chain-emoji { font-size: 2.4rem; margin-bottom: 16px; display: block; }
@@ -340,7 +350,7 @@ function LandingHub() {
             <a href="/terms" className="nav-link">Terms</a>
             <a href="https://twitter.com/arcadia_uno" target="_blank" rel="noopener noreferrer" className="nav-link">Twitter</a>
           </div>
-          <a href="https://celo.arcadia.uno" className="nav-cta">Play now →</a>
+          <a href="#chains" className="nav-cta">Play now →</a>
         </nav>
 
         {/* HERO */}
@@ -417,27 +427,35 @@ function LandingHub() {
               Each chain runs its own isolated arcade. Pick the network you already use — same games, same rules, your tokens.
             </p>
             <div className="chains">
-              {CHAINS.map(({ href, label, emoji, tokens, color, textColor, desc }) => (
-                <a key={label} href={href} className="chain-card">
-                  <div className="chain-card-accent" style={{ background: color }} />
-                  <div className="chain-card-top">
-                    <span className="chain-emoji">{emoji}</span>
-                    <div className="chain-name">{label}</div>
-                    <div className="chain-desc">{desc}</div>
-                    <div className="chain-tokens">
-                      {tokens.map((t) => (
-                        <span key={t} className="chain-token" style={{ background: color, color: textColor }}>
-                          {t}
-                        </span>
-                      ))}
+              {CHAINS.map(({ href, label, emoji, tokens, color, textColor, desc }) => {
+                const isBase = label === "Base";
+                return (
+                  <a
+                    key={label}
+                    href={isBase ? undefined : href}
+                    className={`chain-card${isBase ? " disabled" : ""}`}
+                  >
+                    <div className="chain-card-accent" style={{ background: color }} />
+                    <div className="chain-card-top">
+                      {isBase && <span className="coming-soon-badge">Coming soon</span>}
+                      <span className="chain-emoji">{emoji}</span>
+                      <div className="chain-name">{label}</div>
+                      <div className="chain-desc">{desc}</div>
+                      <div className="chain-tokens">
+                        {tokens.map((t) => (
+                          <span key={t} className="chain-token" style={{ background: color, color: textColor }}>
+                            {t}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <div className="chain-launch">
-                    <span>Play on {label}</span>
-                    <span style={{ fontSize: "1.2rem" }}>→</span>
-                  </div>
-                </a>
-              ))}
+                    <div className="chain-launch">
+                      <span>{isBase ? "In development" : `Play on ${label}`}</span>
+                      <span style={{ fontSize: "1.2rem" }}>{isBase ? "🔧" : "→"}</span>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
           </div>
         </div>
