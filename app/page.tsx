@@ -330,13 +330,41 @@ function LandingHub() {
         @media (max-width: 768px) {
           .nav { padding: 16px 20px; }
           .nav-links { display: none; }
-          .hero { padding: 48px 20px 40px; }
-          .section { padding: 56px 20px; }
-          .step { flex-direction: column; gap: 12px; }
-          .step-num { font-size: 2.8rem; min-width: auto; }
-          .footer { padding: 28px 20px; flex-direction: column; align-items: flex-start; }
-          .stats { }
+
+          /* Hero — match desktop background (#F5F3FF), tighten spacing */
+          .hero { padding: 40px 20px 32px; background: #F5F3FF; }
+          .hero-title { font-size: clamp(3rem, 14vw, 5rem); letter-spacing: -2px; margin-bottom: 16px; }
+          .hero-sub { margin-bottom: 28px; }
+          .hero-cta-row { gap: 10px; margin-bottom: 32px; }
+          .btn-primary, .btn-ghost { padding: 14px 24px; font-size: 0.9rem; }
+
+          /* Game modes — 2-col grid, smaller cards, hidden on very small screens */
+          .games { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+          .game-card { padding: 16px 14px; }
+          .game-emoji { font-size: 1.5rem; margin-bottom: 8px; }
+          .game-label { font-size: 0.85rem; }
+          .game-desc { display: none; } /* hide desc on mobile to keep cards compact */
+
+          /* General section padding */
+          .section { padding: 40px 20px; }
+          .section-title { font-size: clamp(1.6rem, 7vw, 2.4rem); }
+          .section-sub { margin-bottom: 32px; }
+
+          /* Steps */
+          .step { flex-direction: column; gap: 8px; padding: 28px 0; }
+          .step-num { font-size: 2.4rem; min-width: auto; }
+
+          /* Chain cards — single column */
+          .chains { flex-direction: column; }
+
+          /* Stats — 2×2 grid */
           .stat { flex: 1 1 50%; }
+
+          /* Footer */
+          .footer { padding: 28px 20px; flex-direction: column; align-items: flex-start; }
+
+          /* Ticker — smaller text */
+          .ticker-item { font-size: 0.72rem; padding: 0 20px; }
         }
       `}</style>
 
