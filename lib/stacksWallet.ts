@@ -1,15 +1,5 @@
 "use client";
 
-// Direct Stacks wallet connection using the wallet provider globals.
-//
-// Provider priority:
-//   1. window.LeatherProvider  — Leather's own namespace, always supports request()
-//   2. window.XverseProviders?.StacksProvider — Xverse's explicit namespace
-//   3. window.StacksProvider   — SIP-030 standard, BUT may be claimed by MetaMask's
-//                                shim which throws "request not implemented"
-//
-// We try each in order and skip providers where request() throws synchronously.
-
 import { useCallback, useEffect, useState } from "react";
 
 export interface StacksWallet {
@@ -17,79 +7,94 @@ export interface StacksWallet {
   isConnected: boolean;
   connect: () => void;
   disconnect: () => void;
+  noWallet: boolean; // true when no working Stacks provider is found
 }
 
 const STORAGE_KEY = "arcadia:stacks:address";
 
+// Test whether a provider's request() is real by calling it.
+// Returns the provider if usable, null if it throws "not implemented".
+// NOTE: request() may throw SYNCHRONOUSLY, so we must use try/catch, not .catch().
+function testProvider(p: any): any | null {
+  if (!p || typeof p.request !== "function") return null;
+  try {
+    // A real provider returns a Promise; a stub throws synchronously.
+    const ret = p.request({ method: "getAddresses" });
+    // If we got here without throwing, the provider is real — return it.
+    // The returned promise may still reject (e.g. user cancelled), but that's fine.
+    if (ret && typeof ret.then === "function") return p;
+    return null;
+  } catch (e: any) {
+    // Stub throws "request function is not implemented" or similar.
+    return null;
+  }
+}
+
 function getProvider(): any | null {
   if (typeof window === "undefined") return null;
   const w = window as any;
-  // Leather's own global is the most reliable — always implements request().
-  if (w.LeatherProvider?.request) return w.LeatherProvider;
-  // Xverse's dedicated namespace.
-  if (w.XverseProviders?.StacksProvider?.request) return w.XverseProviders.StacksProvider;
-  // Generic SIP-030 — only use if request is a real function (not a stub).
-  if (w.StacksProvider?.request && typeof w.StacksProvider.request === "function") {
-    // Quick check: if the provider is MetaMask's stub it will throw synchronously.
-    try { w.StacksProvider.request({ method: "__ping__" }); } catch (e: any) {
-      if (e?.message?.includes("not implemented")) return null;
-    }
-    return w.StacksProvider;
-  }
-  return null;
+  return (
+    testProvider(w.LeatherProvider) ??
+    testProvider(w.XverseProviders?.StacksProvider) ??
+    testProvider(w.StacksProvider) ??
+    null
+  );
 }
 
-function pickStxAddress(addresses: any[]): string | null {
-  if (!Array.isArray(addresses)) return null;
-  // SIP-030 format: [{ symbol: "STX", address: "SP..." }]
-  const stx = addresses.find(
+// Safely call provider.request — handles both sync throws and async rejections.
+async function safeRequest(provider: any, method: string): Promise<any> {
+  try {
+    return await Promise.resolve(provider.request({ method }));
+  } catch {
+    return null;
+  }
+}
+
+function pickStxAddress(res: any): string | null {
+  if (!res) return null;
+  const addrs: any[] =
+    res?.result?.addresses ?? res?.addresses ?? [];
+  const stx = addrs.find(
     (a: any) => a?.symbol === "STX" || a?.address?.startsWith("S")
   );
   return stx?.address ?? null;
 }
 
 export function useStacksWallet(): StacksWallet {
-  const [address, setAddress] = useState<string | null>(() => {
-    if (typeof window === "undefined") return null;
-    return localStorage.getItem(STORAGE_KEY);
-  });
+  const [address, setAddress] = useState<string | null>(null);
+  const [noWallet, setNoWallet] = useState(false);
 
-  // Verify cached address is still valid on mount (wallet might have disconnected).
   useEffect(() => {
+    // Restore cached address on mount.
     const cached = localStorage.getItem(STORAGE_KEY);
-    if (!cached) return;
-    const provider = getProvider();
-    if (!provider) { localStorage.removeItem(STORAGE_KEY); setAddress(null); return; }
-    // Silently re-request to confirm the wallet is still connected.
-    provider.request({ method: "getAddresses" })
-      .then((res: any) => {
-        const addrs = res?.result?.addresses ?? res?.addresses ?? [];
-        const addr = pickStxAddress(addrs);
-        if (!addr || addr !== cached) { localStorage.removeItem(STORAGE_KEY); setAddress(null); }
-      })
-      .catch(() => { /* wallet locked / not responding — keep cached address */ });
+    if (cached) setAddress(cached);
+
+    // Check if any working provider exists.
+    const p = getProvider();
+    if (!p && !cached) setNoWallet(true);
   }, []);
 
-  const connect = useCallback(() => {
+  const connect = useCallback(async () => {
     const provider = getProvider();
     if (!provider) {
+      setNoWallet(true);
       window.open("https://leather.io/install-extension", "_blank");
       return;
     }
-    provider
-      .request({ method: "getAddresses" })
-      .then((res: any) => {
-        const addrs = res?.result?.addresses ?? res?.addresses ?? [];
-        const addr = pickStxAddress(addrs);
-        if (addr) { localStorage.setItem(STORAGE_KEY, addr); setAddress(addr); }
-      })
-      .catch(() => {});
+    setNoWallet(false);
+    const res = await safeRequest(provider, "getAddresses");
+    const addr = pickStxAddress(res);
+    if (addr) {
+      localStorage.setItem(STORAGE_KEY, addr);
+      setAddress(addr);
+    }
   }, []);
 
   const disconnect = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setAddress(null);
+    setNoWallet(false);
   }, []);
 
-  return { address, isConnected: !!address, connect, disconnect };
+  return { address, isConnected: !!address, connect, disconnect, noWallet };
 }
