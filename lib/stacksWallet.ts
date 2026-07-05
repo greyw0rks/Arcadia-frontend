@@ -1,11 +1,16 @@
 "use client";
 
-// Direct Stacks wallet connection via window.StacksProvider (SIP-030 / WBIPs).
-// Leather and Xverse both inject this provider. This avoids the @stacks/connect-ui
-// web-component modal which breaks silently under Next.js 16 + Turbopack.
+// Direct Stacks wallet connection using the wallet provider globals.
+//
+// Provider priority:
+//   1. window.LeatherProvider  — Leather's own namespace, always supports request()
+//   2. window.XverseProviders?.StacksProvider — Xverse's explicit namespace
+//   3. window.StacksProvider   — SIP-030 standard, BUT may be claimed by MetaMask's
+//                                shim which throws "request not implemented"
+//
+// We try each in order and skip providers where request() throws synchronously.
 
 import { useCallback, useEffect, useState } from "react";
-import { STACKS_NETWORK_NAME } from "./contract";
 
 export interface StacksWallet {
   address: string | null;
@@ -18,7 +23,20 @@ const STORAGE_KEY = "arcadia:stacks:address";
 
 function getProvider(): any | null {
   if (typeof window === "undefined") return null;
-  return (window as any).StacksProvider ?? (window as any).LeatherProvider ?? null;
+  const w = window as any;
+  // Leather's own global is the most reliable — always implements request().
+  if (w.LeatherProvider?.request) return w.LeatherProvider;
+  // Xverse's dedicated namespace.
+  if (w.XverseProviders?.StacksProvider?.request) return w.XverseProviders.StacksProvider;
+  // Generic SIP-030 — only use if request is a real function (not a stub).
+  if (w.StacksProvider?.request && typeof w.StacksProvider.request === "function") {
+    // Quick check: if the provider is MetaMask's stub it will throw synchronously.
+    try { w.StacksProvider.request({ method: "__ping__" }); } catch (e: any) {
+      if (e?.message?.includes("not implemented")) return null;
+    }
+    return w.StacksProvider;
+  }
+  return null;
 }
 
 function pickStxAddress(addresses: any[]): string | null {
