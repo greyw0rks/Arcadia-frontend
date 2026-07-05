@@ -1,63 +1,65 @@
 "use client";
 
-// @stacks/connect v8 migration notes:
-//   showConnect / AppConfig / UserSession → removed
-//   connect()       — async, opens wallet modal, caches addresses in localStorage
-//   disconnect()    — clears localStorage cache
-//   isConnected()   — checks localStorage for a cached address
-//   getLocalStorage() — { addresses: { stx: [{address, ...}], btc: [...] } }
+// @stacks/connect v8: showConnect/AppConfig/UserSession removed.
+// New API: connect() (async), disconnect(), isConnected(), getLocalStorage().
+//
+// IMPORTANT: connect() must be called synchronously within a user gesture (click
+// handler). Pre-load the module in useEffect so the click handler can call
+// mod.connect() immediately — no await import() gap that would lose the gesture.
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+type ConnectMod = typeof import("@stacks/connect");
 
 export interface StacksWallet {
   address: string | null;
   isConnected: boolean;
-  connect: () => Promise<void>;
+  connect: () => void;
   disconnect: () => void;
 }
 
-function getCachedStxAddress(mod: any): string | null {
-  const data = mod.getLocalStorage?.();
-  return data?.addresses?.stx?.[0]?.address ?? null;
+function readAddress(mod: ConnectMod): string | null {
+  try {
+    if (!mod.isConnected()) return null;
+    const data = mod.getLocalStorage();
+    return data?.addresses?.stx?.[0]?.address ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function useStacksWallet(): StacksWallet {
   const [address, setAddress] = useState<string | null>(null);
+  const modRef = useRef<ConnectMod | null>(null);
 
-  // Restore cached connection on mount.
+  // Pre-load module on mount so connect() can fire synchronously from click.
   useEffect(() => {
     import("@stacks/connect")
       .then((mod) => {
-        if (mod.isConnected()) setAddress(getCachedStxAddress(mod));
+        modRef.current = mod;
+        setAddress(readAddress(mod));
       })
       .catch(() => {});
   }, []);
 
-  const connect = useCallback(async () => {
-    try {
-      const mod = await import("@stacks/connect");
-      await mod.connect({
-        appDetails: {
-          name: "Arcadia",
-          icon: typeof window !== "undefined"
-            ? `${window.location.origin}/favicon.ico`
-            : "/favicon.ico",
-        } as any, // appDetails accepted at runtime but not in current type defs
-      } as any);
-      // After connect(), addresses are cached in localStorage via the library.
-      setAddress(getCachedStxAddress(mod));
-    } catch {
-      // User cancelled or no wallet installed — stay disconnected.
-    }
+  // Called synchronously from click — no await before mod.connect() so the
+  // browser preserves the user-gesture context for wallet popup/modal.
+  const connect = useCallback(() => {
+    const mod = modRef.current;
+    if (!mod) return;
+    mod
+      .connect({ forceWalletSelect: true } as any)
+      .then(() => setAddress(readAddress(mod)))
+      .catch((err: unknown) => console.error("[Stacks] connect error:", err));
   }, []);
 
   const disconnect = useCallback(() => {
-    import("@stacks/connect")
-      .then((mod) => {
-        mod.disconnect();
-        setAddress(null);
-      })
-      .catch(() => {});
+    const mod = modRef.current;
+    if (!mod) return;
+    try {
+      mod.disconnect();
+    } catch {}
+    setAddress(null);
   }, []);
 
   return { address, isConnected: !!address, connect, disconnect };
