@@ -1,67 +1,63 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { STACKS_NETWORK_NAME } from "./contract";
+
+// @stacks/connect v8 migration notes:
+//   showConnect / AppConfig / UserSession → removed
+//   connect()       — async, opens wallet modal, caches addresses in localStorage
+//   disconnect()    — clears localStorage cache
+//   isConnected()   — checks localStorage for a cached address
+//   getLocalStorage() — { addresses: { stx: [{address, ...}], btc: [...] } }
+
+import { useCallback, useEffect, useState } from "react";
 
 export interface StacksWallet {
   address: string | null;
   isConnected: boolean;
-  connect: () => void;
+  connect: () => Promise<void>;
   disconnect: () => void;
+}
+
+function getCachedStxAddress(mod: any): string | null {
+  const data = mod.getLocalStorage?.();
+  return data?.addresses?.stx?.[0]?.address ?? null;
 }
 
 export function useStacksWallet(): StacksWallet {
   const [address, setAddress] = useState<string | null>(null);
-  const modRef = useRef<any>(null);
-  const sessionRef = useRef<any>(null);
 
+  // Restore cached connection on mount.
   useEffect(() => {
-    // Pre-load module on mount so connect() can call showConnect synchronously
-    import("@stacks/connect").then((mod) => {
-      modRef.current = mod;
-      const appConfig = new mod.AppConfig(["store_write"]);
-      const userSession = new mod.UserSession({ appConfig });
-      sessionRef.current = userSession;
-
-      if (userSession.isSignInPending()) {
-        userSession.handlePendingSignIn().then(() => {
-          setAddress(getAddress(userSession));
-        });
-      } else {
-        setAddress(getAddress(userSession));
-      }
-    }).catch(() => {});
+    import("@stacks/connect")
+      .then((mod) => {
+        if (mod.isConnected()) setAddress(getCachedStxAddress(mod));
+      })
+      .catch(() => {});
   }, []);
 
-  function getAddress(userSession: any): string | null {
-    if (!userSession.isUserSignedIn()) return null;
-    const data = userSession.loadUserData();
-    return STACKS_NETWORK_NAME === "mainnet"
-      ? data.profile.stxAddress.mainnet
-      : data.profile.stxAddress.testnet;
-  }
-
-  const connect = useCallback(() => {
-    const mod = modRef.current;
-    const userSession = sessionRef.current;
-    if (!mod || !userSession) return;
-    // Called synchronously from click — popup will open
-    mod.showConnect({
-      userSession,
-      appDetails: {
-        name: "QuizArcade",
-        icon: typeof window !== "undefined"
-          ? `${window.location.origin}/favicon.ico`
-          : "/favicon.ico",
-      },
-      onFinish: () => setAddress(getAddress(userSession)),
-    });
+  const connect = useCallback(async () => {
+    try {
+      const mod = await import("@stacks/connect");
+      await mod.connect({
+        appDetails: {
+          name: "Arcadia",
+          icon: typeof window !== "undefined"
+            ? `${window.location.origin}/favicon.ico`
+            : "/favicon.ico",
+        } as any, // appDetails accepted at runtime but not in current type defs
+      } as any);
+      // After connect(), addresses are cached in localStorage via the library.
+      setAddress(getCachedStxAddress(mod));
+    } catch {
+      // User cancelled or no wallet installed — stay disconnected.
+    }
   }, []);
 
   const disconnect = useCallback(() => {
-    const userSession = sessionRef.current;
-    if (!userSession) return;
-    userSession.signUserOut();
-    setAddress(null);
+    import("@stacks/connect")
+      .then((mod) => {
+        mod.disconnect();
+        setAddress(null);
+      })
+      .catch(() => {});
   }, []);
 
   return { address, isConnected: !!address, connect, disconnect };
