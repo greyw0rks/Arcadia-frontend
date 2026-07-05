@@ -70,11 +70,11 @@ export function TokenSwitcher() {
 }
 
 function StacksConnectButton() {
-  const { address, isConnected, connect, disconnect, noWallet } = useStacksWallet();
+  const { address, isConnected, connect, disconnect } = useStacksWallet();
   const short = address ? `${address.slice(0, 5)}…${address.slice(-4)}` : "";
-  const label = isConnected ? short : noWallet ? "Install Leather →" : "Connect Stacks Wallet";
-  const bg = isConnected ? "#fff" : noWallet ? "#FFD93D" : "#7c5cff";
-  const fg = isConnected || noWallet ? "#000" : "#fff";
+  const label = isConnected ? short : "Connect Stacks Wallet";
+  const bg = isConnected ? "#fff" : "#7c5cff";
+  const fg = isConnected ? "#000" : "#fff";
   return (
     <button
       onClick={isConnected ? disconnect : connect}

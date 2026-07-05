@@ -1,69 +1,56 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface StacksWallet {
   address: string | null;
   isConnected: boolean;
   connect: () => void;
   disconnect: () => void;
-  noWallet: boolean;
-}
-
-const STORAGE_KEY = "arcadia:stacks:address";
-
-// Provider detection — check function existence ONLY.
-// Never call request() here; every call sends a real message to the wallet.
-function getProvider(): any | null {
-  if (typeof window === "undefined") return null;
-  const w = window as any;
-  if (typeof w.LeatherProvider?.request === "function")              return w.LeatherProvider;
-  if (typeof w.XverseProviders?.StacksProvider?.request === "function") return w.XverseProviders.StacksProvider;
-  if (typeof w.StacksProvider?.request === "function")               return w.StacksProvider;
-  return null;
-}
-
-function pickStxAddress(res: any): string | null {
-  const addrs: any[] = res?.result?.addresses ?? res?.addresses ?? [];
-  return addrs.find((a: any) => a?.symbol === "STX" || a?.address?.startsWith("S"))?.address ?? null;
 }
 
 export function useStacksWallet(): StacksWallet {
-  const [address, setAddress]   = useState<string | null>(null);
-  const [noWallet, setNoWallet] = useState(false);
+  const [address, setAddress] = useState<string | null>(null);
+  const modRef = useRef<any>(null);
 
   useEffect(() => {
-    // Restore cached address — no wallet request needed on mount.
-    const cached = localStorage.getItem(STORAGE_KEY);
-    if (cached) { setAddress(cached); return; }
-    // Only flag noWallet if provider check on mount shows nothing.
-    if (!getProvider()) setNoWallet(true);
+    // Pre-load @stacks/connect so connect() is available synchronously on click.
+    // Also restores any address already in localStorage from a prior session.
+    import("@stacks/connect").then((mod) => {
+      modRef.current = mod;
+      const data = mod.getLocalStorage();
+      const stxAddr =
+        data?.addresses?.stx?.[0]?.address ??
+        data?.addresses?.stx?.[1]?.address ??
+        null;
+      if (stxAddr) setAddress(stxAddr);
+    }).catch(() => {});
   }, []);
 
   const connect = useCallback(async () => {
-    const provider = getProvider();
-    if (!provider) {
-      setNoWallet(true);
-      window.open("https://leather.io/install-extension", "_blank");
-      return;
-    }
-    setNoWallet(false);
+    const mod = modRef.current;
+    if (!mod) return;
     try {
-      // request() may throw synchronously (stub) or return a rejected Promise.
-      // Wrapping in Promise.resolve handles both.
-      const res = await Promise.resolve(provider.request({ method: "getAddresses" }));
-      const addr = pickStxAddress(res);
-      if (addr) { localStorage.setItem(STORAGE_KEY, addr); setAddress(addr); }
+      const result = await mod.connect();
+      // Prefer the first address that starts with "S" (mainnet STX).
+      const stxAddr =
+        result?.addresses?.find((a: any) => a?.address?.startsWith("S"))
+          ?.address ?? null;
+      if (stxAddr) setAddress(stxAddr);
     } catch {
-      // Wallet rejected or user cancelled — do nothing.
+      // User cancelled or wallet rejected — do nothing.
     }
   }, []);
 
   const disconnect = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
+    modRef.current?.disconnect();
     setAddress(null);
-    setNoWallet(false);
   }, []);
 
-  return { address, isConnected: !!address, connect, disconnect, noWallet };
+  return {
+    address,
+    isConnected: !!address,
+    connect,
+    disconnect,
+  };
 }
