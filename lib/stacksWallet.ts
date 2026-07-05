@@ -1,15 +1,11 @@
 "use client";
 
-// @stacks/connect v8: showConnect/AppConfig/UserSession removed.
-// New API: connect() (async), disconnect(), isConnected(), getLocalStorage().
-//
-// IMPORTANT: connect() must be called synchronously within a user gesture (click
-// handler). Pre-load the module in useEffect so the click handler can call
-// mod.connect() immediately — no await import() gap that would lose the gesture.
+// Direct Stacks wallet connection via window.StacksProvider (SIP-030 / WBIPs).
+// Leather and Xverse both inject this provider. This avoids the @stacks/connect-ui
+// web-component modal which breaks silently under Next.js 16 + Turbopack.
 
-import { useCallback, useEffect, useRef, useState } from "react";
-
-type ConnectMod = typeof import("@stacks/connect");
+import { useCallback, useEffect, useState } from "react";
+import { STACKS_NETWORK_NAME } from "./contract";
 
 export interface StacksWallet {
   address: string | null;
@@ -18,52 +14,62 @@ export interface StacksWallet {
   disconnect: () => void;
 }
 
-function readAddress(mod: ConnectMod): string | null {
-  try {
-    if (!mod.isConnected()) return null;
-    const data = mod.getLocalStorage();
-    return data?.addresses?.stx?.[0]?.address ?? null;
-  } catch {
-    return null;
-  }
+const STORAGE_KEY = "arcadia:stacks:address";
+
+function getProvider(): any | null {
+  if (typeof window === "undefined") return null;
+  return (window as any).StacksProvider ?? (window as any).LeatherProvider ?? null;
+}
+
+function pickStxAddress(addresses: any[]): string | null {
+  if (!Array.isArray(addresses)) return null;
+  // SIP-030 format: [{ symbol: "STX", address: "SP..." }]
+  const stx = addresses.find(
+    (a: any) => a?.symbol === "STX" || a?.address?.startsWith("S")
+  );
+  return stx?.address ?? null;
 }
 
 export function useStacksWallet(): StacksWallet {
-  const [address, setAddress] = useState<string | null>(null);
-  const modRef = useRef<ConnectMod | null>(null);
+  const [address, setAddress] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem(STORAGE_KEY);
+  });
 
-  // Pre-load module on mount so connect() can fire synchronously from click.
-  // defineCustomElements() must run before connect() or the wallet-picker web
-  // component is never registered and the modal silently never appears.
+  // Verify cached address is still valid on mount (wallet might have disconnected).
   useEffect(() => {
-    Promise.all([
-      import("@stacks/connect"),
-      import("@stacks/connect-ui/loader").then((m) => m.defineCustomElements(window)),
-    ])
-      .then(([mod]) => {
-        modRef.current = mod;
-        setAddress(readAddress(mod));
+    const cached = localStorage.getItem(STORAGE_KEY);
+    if (!cached) return;
+    const provider = getProvider();
+    if (!provider) { localStorage.removeItem(STORAGE_KEY); setAddress(null); return; }
+    // Silently re-request to confirm the wallet is still connected.
+    provider.request({ method: "getAddresses" })
+      .then((res: any) => {
+        const addrs = res?.result?.addresses ?? res?.addresses ?? [];
+        const addr = pickStxAddress(addrs);
+        if (!addr || addr !== cached) { localStorage.removeItem(STORAGE_KEY); setAddress(null); }
+      })
+      .catch(() => { /* wallet locked / not responding — keep cached address */ });
+  }, []);
+
+  const connect = useCallback(() => {
+    const provider = getProvider();
+    if (!provider) {
+      window.open("https://leather.io/install-extension", "_blank");
+      return;
+    }
+    provider
+      .request({ method: "getAddresses" })
+      .then((res: any) => {
+        const addrs = res?.result?.addresses ?? res?.addresses ?? [];
+        const addr = pickStxAddress(addrs);
+        if (addr) { localStorage.setItem(STORAGE_KEY, addr); setAddress(addr); }
       })
       .catch(() => {});
   }, []);
 
-  // Called synchronously from click — no await before mod.connect() so the
-  // browser preserves the user-gesture context for wallet popup/modal.
-  const connect = useCallback(() => {
-    const mod = modRef.current;
-    if (!mod) return;
-    mod
-      .connect({ forceWalletSelect: true } as any)
-      .then(() => setAddress(readAddress(mod)))
-      .catch((err: unknown) => console.error("[Stacks] connect error:", err));
-  }, []);
-
   const disconnect = useCallback(() => {
-    const mod = modRef.current;
-    if (!mod) return;
-    try {
-      mod.disconnect();
-    } catch {}
+    localStorage.removeItem(STORAGE_KEY);
     setAddress(null);
   }, []);
 
