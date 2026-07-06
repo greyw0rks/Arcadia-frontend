@@ -456,7 +456,7 @@ function LandingHub() {
             </p>
             <div className="chains">
               {CHAINS.map(({ href, label, emoji, tokens, color, textColor, desc }) => {
-                const isDisabled = label === "Base" || label === "Stacks";
+                const isDisabled = label === "Base";
                 return (
                   <a
                     key={label}

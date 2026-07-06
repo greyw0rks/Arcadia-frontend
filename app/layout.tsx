@@ -40,6 +40,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <Providers>{children}</Providers>
+        {chain === "stacks" && (
+          <div style={{
+            position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 999,
+            background: "#1a1a1a", borderTop: "3px solid #FF5500",
+            padding: "10px 20px", display: "flex", alignItems: "center",
+            justifyContent: "center", gap: 10,
+            fontFamily: "'Space Grotesk', monospace",
+          }}>
+            <span style={{ fontSize: "1rem" }}>🟠</span>
+            <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#fff" }}>
+              Stacks arcade currently requires{" "}
+              <a
+                href="https://leather.io"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "#FF5500", textDecoration: "underline" }}
+              >
+                Leather wallet
+              </a>
+              . Other wallets coming soon.
+            </span>
+          </div>
+        )}
         {chain === "celo" && (
           <div style={{
             position: "fixed", inset: 0, zIndex: 9999,
