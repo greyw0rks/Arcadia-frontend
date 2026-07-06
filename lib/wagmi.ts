@@ -1,7 +1,7 @@
 "use client";
 
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { http } from "wagmi";
+import { createConfig, http } from "wagmi";
 import { celoChain, baseChain, RPC_URL, BASE_RPC_URL, LOCKED_CHAIN } from "./contract";
 
 // Pick the EVM chain for this deployment. Stacks and landing don't need an EVM chain but wagmi
@@ -14,5 +14,17 @@ export const wagmiConfig = getDefaultConfig({
   projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? "demo-project-id",
   chains: [evmChain],
   transports: { [evmChain.id]: http(evmRpc) },
+  ssr: true,
+});
+
+// Minimal no-connector config for the Stacks deployment.
+// WagmiProvider must still be present (pages import wagmi hooks), but with no
+// connectors there is zero EVM wallet scanning — nothing touches window.ethereum
+// or window.StacksProvider during initialisation.
+export const stacksWagmiConfig = createConfig({
+  chains: [evmChain],
+  connectors: [],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  transports: { [evmChain.id]: http(evmRpc) } as any,
   ssr: true,
 });

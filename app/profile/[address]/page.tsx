@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectControl } from "../../../components/ConnectControl";
 import { useAccount } from "wagmi";
 import { useStacksWallet } from "../../../lib/stacksWallet";
 import { MobileBottomNav } from "../../../components/MobileBottomNav";
@@ -188,7 +188,7 @@ export default function ProfilePage() {
             Arcadia
           </div>
         </div>
-        <ConnectButton showBalance={false} chainStatus="icon" />
+        <ConnectControl />
       </div>
 
       <div className="panel" style={{ marginTop: 32 }}>

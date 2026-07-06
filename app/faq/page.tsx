@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { ConnectControl } from "../../components/ConnectControl";
 
 export default function FAQPage() {
   const router = useRouter();
@@ -103,7 +103,7 @@ export default function FAQPage() {
             Arcadia
           </div>
         </div>
-        <ConnectButton showBalance={false} chainStatus="icon" />
+        <ConnectControl />
       </div>
 
       <div className="panel" style={{ marginTop: 32 }}>
