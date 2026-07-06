@@ -70,26 +70,33 @@ export function TokenSwitcher() {
 }
 
 function StacksConnectButton() {
-  const { address, isConnected, connect, disconnect } = useStacksWallet();
+  const { address, isConnected, connect, disconnect, error } = useStacksWallet();
   const short = address ? `${address.slice(0, 5)}…${address.slice(-4)}` : "";
-  const label = isConnected ? short : "Connect Stacks Wallet";
-  const bg = isConnected ? "#fff" : "#7c5cff";
-  const fg = isConnected ? "#000" : "#fff";
+  const label = isConnected ? short : error ? "Retry connect" : "Connect Stacks Wallet";
+  const bg = isConnected ? "#fff" : error ? "#ff4444" : "#7c5cff";
+  const fg = "#fff";
   return (
-    <button
-      onClick={isConnected ? disconnect : connect}
-      style={{
-        padding: "8px 14px",
-        border: "3px solid #000",
-        background: bg,
-        color: fg,
-        fontWeight: 800,
-        cursor: "pointer",
-        fontFamily: "inherit",
-      }}
-    >
-      {label}
-    </button>
+    <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "flex-end" }}>
+      <button
+        onClick={isConnected ? disconnect : connect}
+        style={{
+          padding: "8px 14px",
+          border: "3px solid #000",
+          background: bg,
+          color: isConnected ? "#000" : fg,
+          fontWeight: 800,
+          cursor: "pointer",
+          fontFamily: "inherit",
+        }}
+      >
+        {label}
+      </button>
+      {error && (
+        <span style={{ fontSize: 11, color: "#ff4444", maxWidth: 220, textAlign: "right", wordBreak: "break-all" }}>
+          {error}
+        </span>
+      )}
+    </div>
   );
 }
 

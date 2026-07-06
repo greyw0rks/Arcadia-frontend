@@ -12,9 +12,12 @@ const backendUrl = process.env.BACKEND_URL;
 const nextConfig = {
   reactStrictMode: true,
 
-  // Strip console.* from production bundles.
+  // Strip console.log/warn from production bundles but keep console.error
+  // so wallet connect errors remain visible in browser devtools.
   compiler: {
-    removeConsole: process.env.NODE_ENV === "production",
+    removeConsole: process.env.NODE_ENV === "production"
+      ? { exclude: ["error"] }
+      : false,
   },
 
   async rewrites() {
