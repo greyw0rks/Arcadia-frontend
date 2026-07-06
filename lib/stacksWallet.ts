@@ -31,17 +31,11 @@ function getProvider(): any | null {
 }
 
 function pickStxAddress(res: any): string | null {
-  // stx_requestAccounts returns { result: [{ address, publicKey }] }
-  // getAddresses returns { result: { addresses: [...] } } or { addresses: [...] }
-  const flat: any[] =
-    res?.result?.addresses ??
-    res?.addresses ??
-    (Array.isArray(res?.result) ? res.result : []);
+  // Leather: { result: { addresses: [{ symbol, address, publicKey, ... }] } }
+  const addrs: any[] = res?.result?.addresses ?? res?.addresses ?? [];
   return (
-    flat.find(
-      (a: any) =>
-        a?.address?.startsWith("S") && (!a?.symbol || a?.symbol === "STX")
-    )?.address ?? null
+    addrs.find((a: any) => a?.symbol === "STX" || a?.address?.startsWith("S"))
+      ?.address ?? null
   );
 }
 
@@ -63,38 +57,22 @@ export function useStacksWallet(): StacksWallet {
       return;
     }
 
-    // Log which provider was detected so we know which injection key won.
-    console.error("[Stacks] provider detected:", provider?.constructor?.name ?? typeof provider);
-
-    // Try several method/param combinations in order.
-    const attempts = [
-      { method: "stx_requestAccounts", params: undefined },
-      { method: "getAddresses", params: undefined },
-      { method: "getAddresses", params: { network: "mainnet" } },
-      { method: "wallet_getAccount", params: undefined },
-    ];
-
-    for (const { method, params } of attempts) {
-      try {
-        const req: any = { method };
-        if (params) req.params = params;
-        console.error(`[Stacks] trying ${method}`, params ?? "");
-        const res = await provider.request(req);
-        console.error(`[Stacks] ${method} response:`, JSON.stringify(res).slice(0, 200));
-        const addr = pickStxAddress(res);
-        if (addr) {
-          localStorage.setItem(STORAGE_KEY, addr);
-          setAddress(addr);
-          return;
-        }
-      } catch (err: any) {
-        // Extract nested JSON-RPC error details
-        const code = err?.error?.code ?? err?.code ?? "?";
-        const msg = err?.error?.message ?? err?.message ?? String(err);
-        console.error(`[Stacks] ${method} failed [${code}]:`, msg, err);
-        setError(`${method} [${code}]: ${msg}`);
-        // continue to next attempt
+    try {
+      // Leather API: request(methodName) — plain string, not { method: "..." }
+      const res = await provider.request("getAddresses");
+      const addr = pickStxAddress(res);
+      if (addr) {
+        localStorage.setItem(STORAGE_KEY, addr);
+        setAddress(addr);
+      } else {
+        const msg = "No STX address in response";
+        setError(msg);
+        console.error("[Stacks]", msg, res);
       }
+    } catch (err: any) {
+      const msg = err?.error?.message ?? err?.message ?? String(err);
+      setError(msg);
+      console.error("[Stacks] connect failed:", err);
     }
   }, []);
 
