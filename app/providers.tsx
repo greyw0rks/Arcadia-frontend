@@ -7,11 +7,18 @@ import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { wagmiConfig } from "../lib/wagmi";
 import { ChainProvider } from "../lib/chainContext";
+import { LOCKED_CHAIN } from "../lib/contract";
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
-  // ChainProvider holds the selected network (Celo / Stacks). Wagmi + RainbowKit power the Celo
-  // wallet; Stacks Connect (a singleton UserSession) needs no provider.
+
+  // On the Stacks deployment, don't mount Wagmi or RainbowKit at all.
+  // Their wallet-detection code touches window.StacksProvider, which conflicts
+  // with Leather/Xverse extension injection and breaks the Stacks connect flow.
+  if (LOCKED_CHAIN === "stacks") {
+    return <ChainProvider>{children}</ChainProvider>;
+  }
+
   return (
     <ChainProvider>
       <WagmiProvider config={wagmiConfig}>

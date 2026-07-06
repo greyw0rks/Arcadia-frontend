@@ -456,16 +456,16 @@ function LandingHub() {
             </p>
             <div className="chains">
               {CHAINS.map(({ href, label, emoji, tokens, color, textColor, desc }) => {
-                const isBase = label === "Base";
+                const isDisabled = label === "Base" || label === "Stacks";
                 return (
                   <a
                     key={label}
-                    href={isBase ? undefined : href}
-                    className={`chain-card${isBase ? " disabled" : ""}`}
+                    href={isDisabled ? undefined : href}
+                    className={`chain-card${isDisabled ? " disabled" : ""}`}
                   >
                     <div className="chain-card-accent" style={{ background: color }} />
                     <div className="chain-card-top">
-                      {isBase && <span className="coming-soon-badge">Coming soon</span>}
+                      {isDisabled && <span className="coming-soon-badge">Coming soon</span>}
                       <span className="chain-emoji">{emoji}</span>
                       <div className="chain-name">{label}</div>
                       <div className="chain-desc">{desc}</div>
@@ -478,8 +478,8 @@ function LandingHub() {
                       </div>
                     </div>
                     <div className="chain-launch">
-                      <span>{isBase ? "In development" : `Play on ${label}`}</span>
-                      <span style={{ fontSize: "1.2rem" }}>{isBase ? "🔧" : "→"}</span>
+                      <span>{isDisabled ? "In development" : `Play on ${label}`}</span>
+                      <span style={{ fontSize: "1.2rem" }}>{isDisabled ? "🔧" : "→"}</span>
                     </div>
                   </a>
                 );
