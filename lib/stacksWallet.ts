@@ -63,30 +63,39 @@ export function useStacksWallet(): StacksWallet {
       return;
     }
 
-    // Try stx_requestAccounts first — this is the method that triggers the
-    // wallet permission popup on domains the user hasn't connected yet.
-    // Fall back to getAddresses for wallets that don't implement the former.
-    const methods = ["stx_requestAccounts", "getAddresses"];
-    let lastErr: any;
+    // Log which provider was detected so we know which injection key won.
+    console.error("[Stacks] provider detected:", provider?.constructor?.name ?? typeof provider);
 
-    for (const method of methods) {
+    // Try several method/param combinations in order.
+    const attempts = [
+      { method: "stx_requestAccounts", params: undefined },
+      { method: "getAddresses", params: undefined },
+      { method: "getAddresses", params: { network: "mainnet" } },
+      { method: "wallet_getAccount", params: undefined },
+    ];
+
+    for (const { method, params } of attempts) {
       try {
-        const res = await provider.request({ method });
+        const req: any = { method };
+        if (params) req.params = params;
+        console.error(`[Stacks] trying ${method}`, params ?? "");
+        const res = await provider.request(req);
+        console.error(`[Stacks] ${method} response:`, JSON.stringify(res).slice(0, 200));
         const addr = pickStxAddress(res);
         if (addr) {
           localStorage.setItem(STORAGE_KEY, addr);
           setAddress(addr);
           return;
         }
-      } catch (err) {
-        lastErr = err;
-        // try next method
+      } catch (err: any) {
+        // Extract nested JSON-RPC error details
+        const code = err?.error?.code ?? err?.code ?? "?";
+        const msg = err?.error?.message ?? err?.message ?? String(err);
+        console.error(`[Stacks] ${method} failed [${code}]:`, msg, err);
+        setError(`${method} [${code}]: ${msg}`);
+        // continue to next attempt
       }
     }
-
-    const msg = lastErr?.message ?? lastErr?.toString() ?? "No STX address returned";
-    setError(msg);
-    console.error("[Stacks] connect failed:", lastErr ?? "no address");
   }, []);
 
   const disconnect = useCallback(() => {
