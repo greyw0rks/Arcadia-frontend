@@ -20,24 +20,6 @@ const CHAINS = [
     textColor: "#000",
     desc: "Fast, low-fee L2 with dollar-stable tokens",
   },
-  {
-    href: "https://base.arcadia.uno",
-    label: "Base",
-    emoji: "🔵",
-    tokens: ["USDC"],
-    color: "#0052FF",
-    textColor: "#fff",
-    desc: "Coinbase's Ethereum L2, powered by USDC",
-  },
-  {
-    href: "https://stacks.arcadia.uno",
-    label: "Stacks",
-    emoji: "🟠",
-    tokens: ["STX"],
-    color: "#FF5500",
-    textColor: "#fff",
-    desc: "Bitcoin-secured smart contracts",
-  },
 ];
 
 const GAMES = [
@@ -59,7 +41,7 @@ const STEPS = [
   {
     n: "01",
     title: "Connect your wallet",
-    body: "Link a Celo, Base, or Stacks wallet — no sign-up, no email, no KYC.",
+    body: "Link a Celo wallet — no sign-up, no email, no KYC.",
   },
   {
     n: "02",
@@ -75,7 +57,7 @@ const STEPS = [
 
 const STATS = [
   { value: "12", label: "Game modes" },
-  { value: "3", label: "Chains" },
+  { value: "Celo", label: "Chain" },
   { value: "100%", label: "On-chain payouts" },
   { value: "0", label: "Sign-ups required" },
 ];
@@ -214,16 +196,6 @@ function LandingHub() {
           transition: transform 0.12s, box-shadow 0.12s; overflow: hidden;
         }
         .chain-card:hover { transform: translate(-4px,-4px); box-shadow: 12px 12px 0 #0F0F0F; }
-        .chain-card.disabled {
-          opacity: 0.45; pointer-events: none; cursor: default;
-          filter: grayscale(0.6);
-        }
-        .coming-soon-badge {
-          display: inline-block; font-size: 0.65rem; font-weight: 900;
-          text-transform: uppercase; letter-spacing: 0.12em;
-          padding: 4px 10px; border: 2px solid #0F0F0F;
-          background: #E0E7FF; color: #0F0F0F; margin-bottom: 16px;
-        }
         .chain-card-top { padding: 28px 28px 20px; }
         .chain-card-accent { height: 8px; }
         .chain-emoji { font-size: 2.4rem; margin-bottom: 16px; display: block; }
@@ -378,7 +350,7 @@ function LandingHub() {
             <a href="/terms" className="nav-link">Terms</a>
             <a href="https://twitter.com/arcadia_uno" target="_blank" rel="noopener noreferrer" className="nav-link">Twitter</a>
           </div>
-          <a href="#chains" className="nav-cta">Play now →</a>
+          <a href="https://celo.arcadia.uno" className="nav-cta">Play now →</a>
         </nav>
 
         {/* HERO */}
@@ -396,7 +368,7 @@ function LandingHub() {
             No house edge beyond the rake. The smarter you play, the more you earn.
           </p>
           <div className="hero-cta-row">
-            <a href="#chains" className="btn-primary">Start playing →</a>
+            <a href="https://celo.arcadia.uno" className="btn-primary">Start playing →</a>
             <a href="#how" className="btn-ghost">How it works</a>
           </div>
 
@@ -449,41 +421,33 @@ function LandingHub() {
         {/* CHAINS */}
         <div id="chains" style={{ background: "#F5F3FF", borderBottom: "4px solid #0F0F0F" }}>
           <div className="section">
-            <div className="section-tag">Multi-chain</div>
-            <h2 className="section-title">Choose your chain</h2>
+            <div className="section-tag">Now live</div>
+            <h2 className="section-title">Play on Celo</h2>
             <p className="section-sub">
-              Each chain runs its own isolated arcade. Pick the network you already use — same games, same rules, your tokens.
+              Fast, cheap transactions and dollar-stable tokens. Connect your wallet and start earning — no gas headaches.
             </p>
             <div className="chains">
-              {CHAINS.map(({ href, label, emoji, tokens, color, textColor, desc }) => {
-                const isDisabled = label === "Base";
-                return (
-                  <a
-                    key={label}
-                    href={isDisabled ? undefined : href}
-                    className={`chain-card${isDisabled ? " disabled" : ""}`}
-                  >
-                    <div className="chain-card-accent" style={{ background: color }} />
-                    <div className="chain-card-top">
-                      {isDisabled && <span className="coming-soon-badge">Coming soon</span>}
-                      <span className="chain-emoji">{emoji}</span>
-                      <div className="chain-name">{label}</div>
-                      <div className="chain-desc">{desc}</div>
-                      <div className="chain-tokens">
-                        {tokens.map((t) => (
-                          <span key={t} className="chain-token" style={{ background: color, color: textColor }}>
-                            {t}
-                          </span>
-                        ))}
-                      </div>
+              {CHAINS.map(({ href, label, emoji, tokens, color, textColor, desc }) => (
+                <a key={label} href={href} className="chain-card">
+                  <div className="chain-card-accent" style={{ background: color }} />
+                  <div className="chain-card-top">
+                    <span className="chain-emoji">{emoji}</span>
+                    <div className="chain-name">{label}</div>
+                    <div className="chain-desc">{desc}</div>
+                    <div className="chain-tokens">
+                      {tokens.map((t) => (
+                        <span key={t} className="chain-token" style={{ background: color, color: textColor }}>
+                          {t}
+                        </span>
+                      ))}
                     </div>
-                    <div className="chain-launch">
-                      <span>{isDisabled ? "In development" : `Play on ${label}`}</span>
-                      <span style={{ fontSize: "1.2rem" }}>{isDisabled ? "🔧" : "→"}</span>
-                    </div>
-                  </a>
-                );
-              })}
+                  </div>
+                  <div className="chain-launch">
+                    <span>Play on {label}</span>
+                    <span style={{ fontSize: "1.2rem" }}>→</span>
+                  </div>
+                </a>
+              ))}
             </div>
           </div>
         </div>
@@ -545,9 +509,7 @@ function LandingHub() {
           <div className="footer-links">
             <a href="/faq" className="footer-link">FAQ</a>
             <a href="/terms" className="footer-link">Terms</a>
-            <a href="https://celo.arcadia.uno" className="footer-link">Celo</a>
-            <a href="https://stacks.arcadia.uno" className="footer-link">Stacks</a>
-            <a href="https://base.arcadia.uno" className="footer-link">Base</a>
+            <a href="https://celo.arcadia.uno" className="footer-link">Play</a>
           </div>
           <a href="https://twitter.com/arcadia_uno" target="_blank" rel="noopener noreferrer" className="twitter-btn">
             <span>𝕏</span> @arcadia_uno
