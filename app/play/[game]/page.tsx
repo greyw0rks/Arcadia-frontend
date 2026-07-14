@@ -8,7 +8,7 @@ import { formatMultiplier, celoTokenMeta } from "../../../lib/contract";
 import { MAX_STAKE, difficultyFromStake, roundsFor } from "../../../lib/difficulty";
 import { useChain } from "../../../lib/chainContext";
 import { ConnectControl } from "../../../components/ConnectControl";
-import { soundManager } from "../../../lib/sounds";
+
 import { createConfetti } from "../../../lib/confetti";
 
 interface RoundView {
@@ -64,9 +64,6 @@ export default function PlayPage() {
 
   // Load the selected game's metadata so the setup screen works for any module.
   useEffect(() => {
-    // Initialize sounds
-    soundManager.init();
-
     fetch("/api/games")
       .then((r) => r.json())
       .then((d) => {
@@ -185,13 +182,6 @@ export default function PlayPage() {
         setMultiplierBp(d.multiplierBp);
         setPhase("reveal");
 
-        // Play sound
-        if (d.result === "correct") {
-          soundManager.play('correct');
-        } else {
-          soundManager.play('wrong');
-        }
-
         setTimeout(async () => {
           if (d.done) {
             await finalize(sessionId);
@@ -226,9 +216,8 @@ export default function PlayPage() {
       await arcade.settle(sid, d.multiplierBp, d.signature);
       setPhase("done");
 
-      // Play win sound and show confetti if multiplier >= 1.0x
+      // Show confetti if multiplier >= 1.0x
       if (d.multiplierBp >= 10000) {
-        soundManager.play('win');
         createConfetti();
       }
     } catch (e: any) {

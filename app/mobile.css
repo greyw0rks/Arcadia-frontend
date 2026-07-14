@@ -12,16 +12,24 @@
     --mobile-accent: #FF6B9D;
   }
 
-  /* Apply dark theme to body on mobile */
+  /* Apply dark theme to the full viewport on mobile.
+     html must also be dark: when content is shorter than the screen (e.g. while a
+     wallet tx-approval modal is open) the body may not cover the viewport, and the
+     light html background would otherwise show as a white strip at the bottom. */
+  html,
   body {
     background: var(--mobile-bg);
     color: var(--mobile-text-primary);
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   /* Container adjustments */
   .container {
     background: var(--mobile-bg);
     padding: 16px 16px 80px;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   /* Topbar - minimal dark style */
@@ -218,12 +226,13 @@
     display: none;
   }
 
-  /* Options - rounded style */
+  /* Options - white cards on the dark mobile theme for clear contrast */
   .option {
-    background: var(--mobile-bg);
+    background: #FFFFFF;
     border: 1px solid var(--mobile-border);
     border-radius: 12px;
     box-shadow: none;
+    color: #111111;
     padding: 16px 20px;
     margin: 12px 0;
     transition: all 0.2s ease;
@@ -237,8 +246,9 @@
   .option:hover:not(:disabled) {
     transform: none;
     box-shadow: none;
-    background: var(--mobile-surface);
+    background: #F2ECE6;
     border-color: var(--mobile-accent);
+    color: #111111;
   }
 
   .option.correct {

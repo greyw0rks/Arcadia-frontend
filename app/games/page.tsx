@@ -8,7 +8,6 @@ import { GameIcon } from "../../components/GameIcons";
 import { TutorialModal } from "../../components/TutorialModal";
 import { SocialLinks } from "../../components/SocialLinks";
 import { MobileBottomNav } from "../../components/MobileBottomNav";
-import { soundManager } from "../../lib/sounds";
 
 interface GameMeta {
   id: string;
@@ -24,7 +23,6 @@ export default function GamesPage() {
   const { address } = useAccount();
   const [games, setGames] = useState<GameMeta[]>([]);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -35,10 +33,6 @@ export default function GamesPage() {
   }, []);
 
   useEffect(() => {
-    // Initialize sounds
-    soundManager.init();
-    setSoundEnabled(soundManager.isEnabled());
-
     // Show tutorial for first-time users
     const hasSeenTutorial = localStorage.getItem('arcadia_tutorial_seen');
     if (!hasSeenTutorial) {
@@ -56,12 +50,6 @@ export default function GamesPage() {
     localStorage.setItem('arcadia_tutorial_seen', 'true');
   };
 
-  const toggleSound = () => {
-    const enabled = soundManager.toggle();
-    setSoundEnabled(enabled);
-    soundManager.play('click');
-  };
-
   return (
     <div className="container">
       <div className="topbar">
@@ -77,14 +65,6 @@ export default function GamesPage() {
               👤 Profile
             </button>
           )}
-          <button
-            className="btn ghost"
-            onClick={toggleSound}
-            style={{ padding: "12px 16px", fontSize: "20px" }}
-            title={soundEnabled ? "Mute sounds" : "Enable sounds"}
-          >
-            {soundEnabled ? "🔊" : "🔇"}
-          </button>
           <ConnectControl />
         </div>
       </div>
@@ -128,7 +108,6 @@ export default function GamesPage() {
             className={`card ${g.available ? "playable" : ""}`}
             onClick={() => {
               if (g.available) {
-                soundManager.play('click');
                 router.push(`/play/${g.id}`);
               }
             }}
