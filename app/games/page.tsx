@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { ConnectControl } from "../../components/ConnectControl";
-import { useChain } from "../../lib/chainContext";
-import { useStacksWallet } from "../../lib/stacksWallet";
 import { GameIcon } from "../../components/GameIcons";
 import { TutorialModal } from "../../components/TutorialModal";
 import { SocialLinks } from "../../components/SocialLinks";
@@ -21,14 +19,9 @@ interface GameMeta {
   available: boolean;
 }
 
-const COMING_SOON: GameMeta[] = [];
-
 export default function GamesPage() {
   const router = useRouter();
-  const { chain } = useChain();
-  const evm = useAccount();
-  const stx = useStacksWallet();
-  const address = chain === "stacks" ? stx.address ?? undefined : evm.address;
+  const { address } = useAccount();
   const [games, setGames] = useState<GameMeta[]>([]);
   const [showTutorial, setShowTutorial] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -68,8 +61,6 @@ export default function GamesPage() {
     setSoundEnabled(enabled);
     soundManager.play('click');
   };
-
-  const all = [...games, ...COMING_SOON.filter((c) => !games.some((g) => g.id === c.id))];
 
   return (
     <div className="container">
@@ -131,7 +122,7 @@ export default function GamesPage() {
       </div>
 
       <div className="grid">
-        {all.map((g) => (
+        {games.map((g) => (
           <div
             key={g.id}
             className={`card ${g.available ? "playable" : ""}`}

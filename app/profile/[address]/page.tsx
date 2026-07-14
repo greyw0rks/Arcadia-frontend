@@ -4,22 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ConnectControl } from "../../../components/ConnectControl";
 import { useAccount } from "wagmi";
-import { useStacksWallet } from "../../../lib/stacksWallet";
 import { MobileBottomNav } from "../../../components/MobileBottomNav";
-
-interface LinkedStats {
-  address: string;
-  unit: string;
-  gamesPlayed: number;
-  gamesWon: number;
-  winRate: number;
-  totalStaked: number;
-  totalWinnings: number;
-  highestMultiplierBp: number;
-  currentStreak: number;
-  longestStreak: number;
-  recentGames: { multiplierBp: number; payout: number; won: boolean; block: number }[];
-}
 
 interface UserProfile {
   address: string;
@@ -39,15 +24,12 @@ interface UserProfile {
   };
   achievements: string[];
   recentGames: any[];
-  linkedAddress: string | null;
-  linkedStats: LinkedStats | null;
 }
 
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
   const { address: connectedAddress } = useAccount();
-  const stx = useStacksWallet();
   const profileAddress = params.address as string;
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -55,27 +37,12 @@ export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [username, setUsername] = useState('');
   const [avatar, setAvatar] = useState('');
-  const [waitingForLink, setWaitingForLink] = useState(false);
 
   const isOwnProfile = connectedAddress?.toLowerCase() === profileAddress?.toLowerCase();
-  const isCeloProfile = profileAddress?.startsWith('0x');
 
   useEffect(() => {
     loadProfile();
   }, [profileAddress]);
-
-  // After Stacks wallet connects, complete the pending link
-  useEffect(() => {
-    if (!waitingForLink || !stx.address) return;
-    const addr = stx.address;
-    setWaitingForLink(false);
-    fetch(`/api/profile/${profileAddress}`, {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ linkedStacksAddress: addr }),
-    }).then(() => loadProfile());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stx.address, waitingForLink]);
 
   async function loadProfile() {
     setLoading(true);
@@ -110,8 +77,6 @@ export default function ProfilePage() {
       },
       achievements: [],
       recentGames: [],
-      linkedAddress: null,
-      linkedStats: null,
     };
   }
 
@@ -127,28 +92,6 @@ export default function ProfilePage() {
     } catch {
       console.error('Failed to save profile');
     }
-  }
-
-  function handleLinkStacks() {
-    if (stx.address) {
-      fetch(`/api/profile/${profileAddress}`, {
-        method: 'PUT',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ linkedStacksAddress: stx.address }),
-      }).then(() => loadProfile());
-    } else {
-      setWaitingForLink(true);
-      stx.connect();
-    }
-  }
-
-  async function handleUnlinkStacks() {
-    await fetch(`/api/profile/${profileAddress}`, {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ linkedStacksAddress: null }),
-    });
-    loadProfile();
   }
 
   const avatarOptions = ['🎮', '🎯', '🎲', '🎰', '🏆', '⭐', '💎', '🔥', '👾', '🎪', '🎭', '🎨'];
@@ -170,7 +113,7 @@ export default function ProfilePage() {
     ? Math.round((profile.stats.totalGamesWon / profile.stats.totalGamesPlayed) * 100)
     : 0;
   const netProfit = profile.stats.totalWinnings - profile.stats.totalStaked;
-  const unit = profile.unit === 'STX' ? 'STX' : 'cUSD';
+  const unit = profile.unit ?? 'USDm';
 
   return (
     <div className="container">
@@ -296,56 +239,6 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* Stacks Activity (if linked) */}
-        {profile.linkedStats ? (
-          <div style={{ marginBottom: 40 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-              <h2 style={{ fontSize: '28px', margin: 0 }}>⚡ Stacks Activity</h2>
-              <span className="muted" style={{ fontSize: 13 }}>
-                {shortAddr(profile.linkedAddress!)}
-              </span>
-              {isOwnProfile && isCeloProfile && (
-                <button
-                  className="btn ghost"
-                  onClick={handleUnlinkStacks}
-                  style={{ padding: '4px 10px', fontSize: 12, marginLeft: 'auto' }}
-                >
-                  Unlink
-                </button>
-              )}
-            </div>
-            {profile.linkedStats.gamesPlayed > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '16px' }}>
-                <StatCard icon="🎮" label="Games Played" value={profile.linkedStats.gamesPlayed} />
-                <StatCard icon="🏆" label="Games Won" value={profile.linkedStats.gamesWon} />
-                <StatCard icon="📈" label="Win Rate" value={`${profile.linkedStats.winRate}%`} />
-                <StatCard icon="💰" label="Winnings" value={`${profile.linkedStats.totalWinnings} STX`} />
-                <StatCard icon="🚀" label="Best Multiplier" value={`${(profile.linkedStats.highestMultiplierBp / 10000).toFixed(1)}x`} />
-                <StatCard icon="🔥" label="Streak" value={profile.linkedStats.currentStreak} />
-              </div>
-            ) : (
-              <p className="muted">No Stacks games played yet.</p>
-            )}
-          </div>
-        ) : isOwnProfile && isCeloProfile ? (
-          <div
-            style={{
-              marginBottom: 40,
-              padding: '28px',
-              background: 'var(--card)',
-              border: '4px solid var(--border)',
-              textAlign: 'center',
-            }}
-          >
-            <p style={{ margin: '0 0 8px 0', fontWeight: 700, fontSize: 18 }}>Also play on Stacks?</p>
-            <p className="muted" style={{ fontSize: 13, marginBottom: 20 }}>
-              Link your Stacks wallet to show cross-chain activity on this profile.
-            </p>
-            <button className="btn ghost" onClick={handleLinkStacks} disabled={waitingForLink}>
-              {waitingForLink ? 'Waiting for wallet...' : 'Link Stacks Wallet'}
-            </button>
-          </div>
-        ) : null}
       </div>
 
       <MobileBottomNav />

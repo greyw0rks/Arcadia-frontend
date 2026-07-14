@@ -2,7 +2,7 @@
   "name": "arcadia-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "Arcadia — the multi-chain quiz arcade. Frontend UI; API proxied to arcadia-backend on Railway.",
+  "description": "Arcadia — the quiz arcade on Celo. Frontend UI; API proxied to arcadia-backend on Railway.",
   "type": "module",
   "repository": {
     "type": "git",
@@ -17,9 +17,6 @@
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "@rainbow-me/rainbowkit": "^2.2.11",
-    "@stacks/connect": "^8.2.6",
-    "@stacks/network": "^6.17.0",
-    "@stacks/transactions": "^6.17.0",
     "@tanstack/react-query": "^5.100.14",
     "next": "^16.2.7",
     "react": "^19.2.7",

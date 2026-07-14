@@ -3,18 +3,11 @@
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
-import { useChain } from "../lib/chainContext";
-import { useStacksWallet } from "../lib/stacksWallet";
-
 export function MobileBottomNav() {
   const router = useRouter();
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
-  const { chain } = useChain();
-  const evm = useAccount();
-  const stx = useStacksWallet();
-
-  const address = chain === "stacks" ? stx.address : evm.address;
+  const { address } = useAccount();
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth <= 768);
@@ -38,6 +31,13 @@ export function MobileBottomNav() {
       >
         🎮
         <span>Games</span>
+      </button>
+      <button
+        className={isActive('/tournament') ? 'active' : ''}
+        onClick={() => router.push('/tournament')}
+      >
+        🏆
+        <span>Tournament</span>
       </button>
       <button
         className={pathname.startsWith('/profile') ? 'active' : ''}

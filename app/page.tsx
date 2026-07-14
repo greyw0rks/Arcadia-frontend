@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { LOCKED_CHAIN } from "../lib/contract";
 
+const LOCKED_CHAIN = process.env.NEXT_PUBLIC_CHAIN;
 const isLanding = !LOCKED_CHAIN || LOCKED_CHAIN === "landing";
 
 // ---------------------------------------------------------------------------

@@ -115,7 +115,7 @@ export default function TermsPage() {
               treasury and ensure payouts to winners.
             </li>
             <li>
-              Maximum bet is <strong>$1 per game</strong> (1 cUSD on Celo, 1 STX on Stacks),
+              Maximum bet is <strong>$1 per game</strong> (USDm, USDC, or USDT on Celo),
               enforced on-chain.
             </li>
             <li>

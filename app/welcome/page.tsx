@@ -9,7 +9,7 @@ export default function WelcomePage() {
 
   const slides = [
     {
-      title: "Archadia Awaits",
+      title: "Arcadia Awaits",
       subtitle: "A new era of gaming is here",
       icon: "🎮",
       description: "Welcome to Arcadia, where skill meets stake"

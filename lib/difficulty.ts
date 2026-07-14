@@ -17,12 +17,9 @@ import type { ChainId } from "./contract";
 export const BPS = 10_000;
 export const STEP_BPS = 1_000;
 
-// Per-session stake cap, in DISPLAY units (USDM/USDC / STX). Stablecoin chains cap at 1 USD. STX is
-// not USD-pegged; fixed 1-STX cap (matches the on-chain `max-stake` of 1_000_000 micro-STX).
+// Per-session stake cap in DISPLAY units (USDM/USDC). Caps at $1 USD.
 export const MAX_STAKE: Record<ChainId, number> = {
   celo: 1,
-  base: 1,
-  stacks: 1,
 };
 
 // Difficulty knobs.
@@ -37,47 +34,10 @@ function clamp(n: number, lo: number, hi: number): number {
   return Math.max(lo, Math.min(hi, n));
 }
 
-/**
- * Difficulty fraction d ∈ [0, 1] from the on-chain effective stake.
- * `effectiveMaxStake = maxStake * (BPS - rakeBps) / BPS`. Because the flat rake scales numerator and
- * denominator alike, d == stake / maxStake exactly, so this is rake-independent.
- */
-export function difficultyFraction(effectiveStake: number, effectiveMaxStake: number): number {
-  if (!(effectiveMaxStake > 0)) return 0;
-  return clamp(effectiveStake / effectiveMaxStake, 0, 1);
-}
-
 /** Difficulty fraction from a DISPLAY-unit stake (used by the client preview + /api/session). */
 export function difficultyFromStake(stake: number, chain: ChainId): number {
   return clamp((stake || 0) / MAX_STAKE[chain], 0, 1);
 }
-
-/** Effective (post-rake) max stake in token base units, for the on-chain comparison. */
-export function effectiveMaxStakeBaseUnits(
-  maxStakeBaseUnits: bigint,
-  rakeBps: number
-): bigint {
-  return (maxStakeBaseUnits * BigInt(BPS - rakeBps)) / BigInt(BPS);
-}
-
-/**
- * Difficulty fraction from on-chain base-unit values, computed in bigint to avoid Number precision
- * loss on 18-decimal stakes (5e18 > Number.MAX_SAFE_INTEGER).
- */
-export function difficultyFractionBaseUnits(
-  effectiveStake: bigint,
-  maxStakeBaseUnits: bigint,
-  rakeBps: number
-): number {
-  const effMax = effectiveMaxStakeBaseUnits(maxStakeBaseUnits, rakeBps);
-  if (effMax <= 0n) return 0;
-  const scaled = (effectiveStake * BigInt(BPS)) / effMax; // 0..BPS (may exceed if over-staked)
-  return clamp(Number(scaled) / BPS, 0, 1);
-}
-
-// Default rake (bps) mirroring the contracts' constructor default. Difficulty is rake-independent
-// (the rake cancels in the ratio), so an on-chain rake change does not skew the fraction.
-export const DEFAULT_RAKE_BPS = 300;
 
 /**
  * Number of rounds for a difficulty fraction, capped by the game's unique-question bank so a session
