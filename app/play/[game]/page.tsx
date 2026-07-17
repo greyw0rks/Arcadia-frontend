@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { useArcade } from "../../../lib/useArcade";
 import { formatMultiplier, celoTokenMeta } from "../../../lib/contract";
-import { MAX_STAKE, difficultyFromStake, roundsFor } from "../../../lib/difficulty";
+import { MAX_STAKE, MIN_STAKE, rawStakeFraction, roundsFor } from "../../../lib/difficulty";
 import { useChain } from "../../../lib/chainContext";
 import { ConnectControl } from "../../../components/ConnectControl";
 
@@ -102,6 +102,10 @@ export default function PlayPage() {
     const amt = Number(stake);
     if (!(amt > 0)) {
       setError("Enter a stake greater than 0.");
+      return;
+    }
+    if (amt < MIN_STAKE["celo"]) {
+      setError(`Min bet is ${MIN_STAKE["celo"]} ${stakeSymbol} per game.`);
       return;
     }
     if (amt > MAX_STAKE["celo"]) {
@@ -239,12 +243,12 @@ export default function PlayPage() {
   const up = multiplierBp >= 10000;
   const estPayout = finalBp != null ? (Number(stake) * 0.97 * finalBp) / 10000 : null;
 
-  // Live difficulty preview from the chosen stake (higher bet => harder session).
+  // Live round-count preview from the chosen stake (higher bet => more rounds). Difficulty is fixed
+  // hard for every session, so no difficulty label is shown.
   const stakeNum = Number(stake) || 0;
   const overMax = stakeNum > MAX_STAKE["celo"];
-  const diff = difficultyFromStake(Math.min(stakeNum, MAX_STAKE["celo"]), "celo");
-  const previewRounds = meta ? roundsFor(diff, meta.bankSize) : maxRounds;
-  const diffLabel = diff < 0.34 ? "Easy" : diff < 0.67 ? "Medium" : "Hard";
+  const underMin = stakeNum > 0 && stakeNum < MIN_STAKE["celo"];
+  const previewRounds = meta ? roundsFor(rawStakeFraction(stakeNum, "celo"), meta.bankSize) : maxRounds;
 
   return (
     <div className="container">
@@ -269,7 +273,7 @@ export default function PlayPage() {
         <div className="panel center">
           <h2>Connect your wallet to play</h2>
           <p className="muted">
-            You&apos;ll stake {stakeSymbol} on Celo (max {MAX_STAKE["celo"]}{" "}
+            You&apos;ll stake {stakeSymbol} on Celo ({MIN_STAKE["celo"]}–{MAX_STAKE["celo"]}{" "}
             {stakeSymbol} per game).
           </p>
         </div>
@@ -283,14 +287,14 @@ export default function PlayPage() {
             below 1.0x). A 3% entry rake applies. Payout = stake × final multiplier.
           </p>
           <p className="muted" style={{ marginTop: 8 }}>
-            <b>The higher your bet, the harder the session</b> — fewer seconds per question, tougher
-            questions, and more rounds. Max bet is {MAX_STAKE["celo"]} {stakeSymbol} per game.
+            <b>The higher your bet, the more rounds you play</b> — and every session is hard. Bet{" "}
+            {MIN_STAKE["celo"]}–{MAX_STAKE["celo"]} {stakeSymbol} per game.
           </p>
           <div className="row" style={{ marginTop: 20, justifyContent: "flex-start", gap: 16 }}>
             <input
               className="input"
               type="number"
-              min="0"
+              min={MIN_STAKE["celo"]}
               max={MAX_STAKE["celo"]}
               step="0.1"
               value={stake}
@@ -302,18 +306,18 @@ export default function PlayPage() {
             </button>
           </div>
           <div className="row" style={{ marginTop: 12, justifyContent: "flex-start", gap: 16 }}>
-            <span className={`difficulty-pill ${diffLabel.toLowerCase()}`}>
-              Difficulty: <b>{diffLabel}</b>
-            </span>
             <span className="muted">
-              {previewRounds} rounds · up to {formatMultiplier(10000 + 1000 * previewRounds)} · shorter
-              timer at higher bets
+              {previewRounds} rounds · up to {formatMultiplier(10000 + 1000 * previewRounds)} · more
+              rounds at higher bets
             </span>
           </div>
           {IMAGE_GAMES.has(game) && (
             <div className="info" style={{ marginTop: 16, fontWeight: 700 }}>
               ⚠️ This game loads images each round. Make sure you have a <strong>reliable and fast internet connection</strong> before playing — slow connections may cause images to fail mid-round.
             </div>
+          )}
+          {underMin && (
+            <div className="error">Min bet is {MIN_STAKE["celo"]} {stakeSymbol} per game.</div>
           )}
           {overMax && (
             <div className="error">Max bet is {MAX_STAKE["celo"]} {stakeSymbol} per game.</div>

@@ -22,12 +22,12 @@ export default function FAQPage() {
       answer: "Yes! The multiplier can drop below 1.0x if you get too many questions wrong. For example, if you stake 1 USDm and end at 0.8x, you'll only get back 0.776 USDm (1 × 0.97 × 0.8). This is what makes it exciting — you're betting on your skills!",
     },
     {
-      question: "Is there a maximum bet?",
-      answer: "Yes. The maximum bet is $1 per game. The cap is enforced on-chain, so no session can ever stake more.",
+      question: "Is there a minimum or maximum bet?",
+      answer: "Yes. Bets range from $0.10 to $1 per game. The $1 maximum is enforced on-chain so no session can ever stake more, and the $0.10 minimum keeps every game meaningful.",
     },
     {
-      question: "Does the bet size change the difficulty?",
-      answer: "Yes. The higher your bet, the harder the session: you get fewer seconds per question, tougher questions, and more rounds. A small bet is a short, gentle session; a max bet is a longer, faster, harder one with more upside.",
+      question: "Does the bet size change the game?",
+      answer: "Yes — the higher your bet, the more rounds you play: $0.10 is a quick 3-round game, up to 6 rounds at $1. Every session is hard regardless of bet size; a bigger bet just means more rounds and more upside.",
     },
     {
       question: "What is the 3% rake?",
@@ -43,7 +43,7 @@ export default function FAQPage() {
     },
     {
       question: "Which games are available?",
-      answer: "We have 13 games: Trivia Rush, Letter League, GeoGuess, True/False Blitz, Odd One Out, Emoji Puzzle, Riddle Me This, Capital Quiz, Math Sprint, Name That Landmark, Logo Quiz, Movie Stills, and Hex Match. More coming soon!",
+      answer: "We have 13 games: Trivia Rush, GeoGuess, True/False Blitz, Odd One Out, Emoji Puzzle, Riddle Me This, Capital Quiz, Math Sprint, Name That Landmark, Logo Quiz, Movie Stills, and Hex Match, with Letter League coming soon. More on the way!",
     },
     {
       question: "Is this gambling?",
