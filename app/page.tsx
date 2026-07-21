@@ -348,6 +348,7 @@ function LandingHub() {
           <div className="nav-links">
             <a href="/faq" className="nav-link">FAQ</a>
             <a href="/terms" className="nav-link">Terms</a>
+            <a href="/kit" className="nav-link">Brand Kit</a>
             <a href="https://twitter.com/arcadia_uno" target="_blank" rel="noopener noreferrer" className="nav-link">Twitter</a>
           </div>
           <a href="https://celo.arcadia.uno" className="nav-cta">Play now →</a>
@@ -509,6 +510,7 @@ function LandingHub() {
           <div className="footer-links">
             <a href="/faq" className="footer-link">FAQ</a>
             <a href="/terms" className="footer-link">Terms</a>
+            <a href="/kit" className="footer-link">Brand Kit</a>
             <a href="https://celo.arcadia.uno" className="footer-link">Play</a>
           </div>
           <a href="https://twitter.com/arcadia_uno" target="_blank" rel="noopener noreferrer" className="twitter-btn">
