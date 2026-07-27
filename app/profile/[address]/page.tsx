@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ConnectControl } from "../../../components/ConnectControl";
 import { useAccount } from "wagmi";
-import { MobileBottomNav } from "../../../components/MobileBottomNav";
+import { BottomNav } from "../../../components/BottomNav";
 
 interface UserProfile {
   address: string;
@@ -188,10 +188,10 @@ export default function ProfilePage() {
             </div>
           ) : (
             <>
-              <h1 style={{ margin: '0 0 8px 0', fontSize: '36px' }}>
+              <h1 style={{ margin: '0 0 8px 0', fontSize: 'clamp(24px, 7vw, 36px)' }}>
                 {profile.username || shortAddr(profile.address)}
               </h1>
-              <p className="muted" style={{ fontSize: '14px', marginBottom: 16 }}>
+              <p className="muted" style={{ fontSize: '14px', marginBottom: 16, overflowWrap: 'anywhere' }}>
                 {profile.address}
               </p>
               {isOwnProfile && (
@@ -241,7 +241,7 @@ export default function ProfilePage() {
 
       </div>
 
-      <MobileBottomNav />
+      <BottomNav />
     </div>
   );
 }

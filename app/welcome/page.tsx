@@ -142,20 +142,32 @@ export default function WelcomePage() {
           animation: fadeIn 0.6s ease-out 0.4s both;
         }
 
+        /* 44px tap target, 20px painted square via ::before */
         .welcome-dot {
-          width: 12px;
-          height: 12px;
-          border-radius: 50%;
-          background: var(--bg-alt);
-          border: 3px solid var(--border);
+          width: 44px;
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: none;
+          border: none;
           cursor: pointer;
-          transition: all 0.3s;
           padding: 0;
         }
 
-        .welcome-dot.active {
+        .welcome-dot::before {
+          content: "";
+          width: 20px;
+          height: 20px;
+          background: var(--bg-alt);
+          border: 5px solid var(--border);
+          box-shadow: var(--shadow-badge);
+          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .welcome-dot.active::before {
           background: var(--accent);
-          transform: scale(1.3);
+          transform: scale(1.3) rotate(45deg);
         }
 
         .welcome-navigation {
@@ -180,10 +192,8 @@ export default function WelcomePage() {
           }
         }
 
-        /* Mobile styles */
         @media (max-width: 768px) {
           .welcome-screen {
-            background: var(--mobile-bg);
             padding: 32px 20px;
           }
 
@@ -193,29 +203,14 @@ export default function WelcomePage() {
 
           .welcome-title {
             font-size: 40px;
-            font-family: serif;
-            color: var(--mobile-text-primary);
-            letter-spacing: -0.02em;
           }
 
           .welcome-subtitle {
             font-size: 18px;
-            color: var(--mobile-text-secondary);
           }
 
           .welcome-description {
             font-size: 15px;
-            color: var(--mobile-text-secondary);
-          }
-
-          .welcome-dot {
-            background: var(--mobile-surface);
-            border: 2px solid var(--mobile-border);
-          }
-
-          .welcome-dot.active {
-            background: var(--mobile-accent);
-            border-color: var(--mobile-accent);
           }
 
           .welcome-navigation {
@@ -225,6 +220,16 @@ export default function WelcomePage() {
 
           .welcome-navigation .btn {
             width: 100%;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .welcome-icon {
+            font-size: 88px;
+          }
+
+          .welcome-title {
+            font-size: 30px;
           }
         }
       `}</style>

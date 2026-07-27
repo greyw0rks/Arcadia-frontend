@@ -19,6 +19,10 @@
   --shadow-lg: 12px 12px 0 var(--border);
   --shadow-brutal: 6px 6px 0 var(--border);
   --shadow-xl: 16px 16px 0 var(--border);
+  /* interaction shadows — lift on hover, sink on press */
+  --shadow-hover: 10px 10px 0 var(--border);
+  --shadow-press: 3px 3px 0 var(--border);
+  --shadow-badge: 3px 3px 0 var(--border);
 }
 
 * {
@@ -31,10 +35,21 @@ html,
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: "Space Grotesk", "Space Mono", "Courier New", monospace, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-display), "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   font-weight: 700;
+}
+
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+img,
+svg,
+table {
+  max-width: 100%;
 }
 
 a {
@@ -83,11 +98,11 @@ a {
 }
 .brand:hover {
   transform: translate(-4px, -4px);
-  box-shadow: 12px 12px 0 var(--border);
+  box-shadow: var(--shadow-hover);
 }
 .brand:active {
   transform: translate(3px, 3px);
-  box-shadow: 3px 3px 0 var(--border);
+  box-shadow: var(--shadow-press);
 }
 
 /* Hero */
@@ -225,11 +240,11 @@ a {
 }
 .card.playable:hover {
   transform: translate(-6px, -6px);
-  box-shadow: 18px 18px 0 var(--border);
+  box-shadow: var(--shadow-hover);
 }
 .card.playable:active {
   transform: translate(4px, 4px);
-  box-shadow: 4px 4px 0 var(--border);
+  box-shadow: var(--shadow-press);
 }
 .card .game-icon-wrapper {
   width: 64px;
@@ -251,28 +266,12 @@ a {
   flex-shrink: 0;
 }
 .card h3 {
-  font-size: 18px;
-  font-weight: 900;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-  position: relative;
-  z-index: 1;
-  line-height: 1.2;
-}
-.card p {
-  font-size: 13px;
-  line-height: 1.4;
-  margin-bottom: 12px;
-  font-weight: 500;
-  flex-grow: 1;
-}
-.card h3 {
   font-size: 24px;
   font-weight: 900;
   margin-bottom: 10px;
   text-transform: uppercase;
   letter-spacing: -0.02em;
+  line-height: 1.2;
   position: relative;
   z-index: 1;
 }
@@ -281,6 +280,7 @@ a {
   line-height: 1.5;
   margin-bottom: 16px;
   font-weight: 500;
+  flex-grow: 1;
 }
 .badge {
   display: inline-block;
@@ -291,7 +291,7 @@ a {
   padding: 8px 16px;
   border: 4px solid var(--border);
   background: var(--yellow);
-  box-shadow: 3px 3px 0 var(--border);
+  box-shadow: var(--shadow-badge);
   position: relative;
   z-index: 1;
   margin-top: auto;
@@ -402,11 +402,11 @@ a {
 }
 .btn:hover {
   transform: translate(-4px, -4px);
-  box-shadow: 10px 10px 0 var(--border);
+  box-shadow: var(--shadow-hover);
 }
 .btn:active {
   transform: translate(3px, 3px);
-  box-shadow: 3px 3px 0 var(--border);
+  box-shadow: var(--shadow-press);
 }
 .btn:disabled {
   opacity: 0.5;
@@ -469,7 +469,7 @@ a {
 }
 .option:hover:not(:disabled) {
   transform: translate(-4px, -4px);
-  box-shadow: 10px 10px 0 var(--border);
+  box-shadow: var(--shadow-hover);
   background: var(--yellow);
 }
 .option:hover:not(:disabled)::after {
@@ -478,7 +478,7 @@ a {
 }
 .option:active:not(:disabled) {
   transform: translate(3px, 3px);
-  box-shadow: 3px 3px 0 var(--border);
+  box-shadow: var(--shadow-press);
 }
 .option:disabled {
   cursor: default;
@@ -488,7 +488,7 @@ a {
   color: var(--card);
   border-color: var(--border);
   animation: correctBounce 0.4s;
-  box-shadow: 10px 10px 0 var(--border);
+  box-shadow: var(--shadow-hover);
 }
 .option.correct::before {
   opacity: 0.15;
@@ -512,7 +512,7 @@ a {
   color: var(--card);
   border-color: var(--border);
   animation: shake 0.3s;
-  box-shadow: 10px 10px 0 var(--border);
+  box-shadow: var(--shadow-hover);
 }
 .option.wrong::before {
   opacity: 0.15;
@@ -660,7 +660,6 @@ a {
   padding: 12px 16px;
   background: var(--bg-alt);
   border: 3px solid var(--border);
-  border-radius: 0;
 }
 .error {
   color: var(--red);
@@ -704,21 +703,30 @@ a {
   border: 5px solid var(--border);
   background: var(--bg-alt);
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 3px 3px 0 var(--border);
+  box-shadow: var(--shadow-badge);
 }
 .progress-dot.active {
   background: var(--accent);
   transform: scale(1.5) rotate(45deg);
-  box-shadow: 4px 4px 0 var(--border);
+  box-shadow: var(--shadow-badge);
 }
 .progress-dot.complete {
   background: var(--green);
-  box-shadow: 4px 4px 0 var(--border);
+  box-shadow: var(--shadow-badge);
   transform: scale(1.1);
 }
 
-/* Responsive */
+/* Responsive.
+   The shadow/border scale steps down with the viewport: a 16px hard shadow that
+   reads as depth on desktop reads as overflow at 360px. Every rule consumes the
+   tokens, so redefining them here cascades. */
 @media (max-width: 768px) {
+  :root {
+    --shadow: 6px 6px 0 var(--border);
+    --shadow-xl: 12px 12px 0 var(--border);
+    --shadow-lg: 8px 8px 0 var(--border);
+    --shadow-hover: 8px 8px 0 var(--border);
+  }
   .hero h1 {
     font-size: 40px;
   }
@@ -744,7 +752,7 @@ a {
     padding: 16px 0 24px;
   }
   .container {
-    padding: 20px 16px 60px;
+    padding: 20px 16px 100px;
   }
   .card {
     padding: 20px 16px;
@@ -774,12 +782,49 @@ a {
 }
 
 @media (max-width: 480px) {
+  :root {
+    --shadow: 4px 4px 0 var(--border);
+    --shadow-sm: 2px 2px 0 var(--border);
+    --shadow-brutal: 3px 3px 0 var(--border);
+    --shadow-xl: 8px 8px 0 var(--border);
+    --shadow-lg: 6px 6px 0 var(--border);
+    --shadow-hover: 5px 5px 0 var(--border);
+    --shadow-press: 2px 2px 0 var(--border);
+    --shadow-badge: 2px 2px 0 var(--border);
+  }
   .hero h1 {
     font-size: 32px;
   }
   .hero {
     padding: 24px 20px;
     margin-bottom: 24px;
+    border-width: 5px;
+    transform: rotate(-1deg);
+  }
+  /* Rotated 45deg, this diamond's bounding box is ~1.4x its side and it already
+     sits outside the hero, so at full size it pushes past a 360px viewport. */
+  .hero::after {
+    width: 20px;
+    height: 20px;
+    border-width: 4px;
+    bottom: -8px;
+    right: -8px;
+  }
+  .hero::before {
+    inset: -5px;
+  }
+  .panel {
+    border-width: 6px;
+  }
+  .panel::before {
+    inset: 10px;
+  }
+  .panel::after {
+    width: 20px;
+    height: 20px;
+    border-width: 4px;
+    bottom: -6px;
+    right: -6px;
   }
   .hero .tagline {
     font-size: 15px;
@@ -796,7 +841,7 @@ a {
     padding: 8px 14px;
   }
   .container {
-    padding: 16px 12px 50px;
+    padding: 16px 12px 92px;
   }
   .card {
     padding: 16px 12px;
@@ -826,14 +871,14 @@ a {
     font-size: 9px;
     padding: 6px 12px;
     border: 3px solid var(--border);
-    box-shadow: 2px 2px 0 var(--border);
   }
   .btn {
     padding: 14px 28px;
     font-size: 16px;
   }
+  /* extra right padding so wrapped text never runs under the ::after marker */
   .option {
-    padding: 18px 20px;
+    padding: 18px 56px 18px 20px;
     font-size: 16px;
   }
   .panel {
@@ -849,7 +894,142 @@ a {
     flex-direction: column;
     align-items: stretch;
   }
+  /* opt out of the stacking above — for compact status lines that must stay horizontal */
+  .row.tight {
+    flex-direction: row;
+    align-items: center;
+  }
   .input {
     width: 100%;
+  }
+}
+
+/* Visibility utilities — replaces JS innerWidth checks that caused hydration flashes */
+.desktop-only {
+  display: none;
+}
+@media (min-width: 769px) {
+  .desktop-only {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .hide-sm {
+    display: none;
+  }
+}
+
+/* Bottom navigation — shown only on narrow viewports, but in the same
+   ink-and-offset language as everything else. */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 900; /* below TutorialModal (1000) */
+  display: none;
+  justify-content: space-around;
+  align-items: stretch;
+  background: var(--card);
+  border-top: 6px solid var(--border);
+  box-shadow: 0 -6px 0 var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: flex;
+  }
+}
+.bottom-nav button {
+  flex: 1;
+  min-height: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--card);
+  border: none;
+  border-right: 4px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.bottom-nav button:last-child {
+  border-right: none;
+}
+.bottom-nav button span {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.bottom-nav button.active {
+  background: var(--yellow);
+}
+.bottom-nav button:active {
+  transform: translateY(2px);
+}
+@media (max-width: 360px) {
+  .bottom-nav button span {
+    font-size: 9px;
+  }
+}
+
+/* Data tables — framed scroll region rather than a crushed grid */
+.table-wrap {
+  overflow-x: auto;
+  border: 6px solid var(--border);
+  box-shadow: var(--shadow);
+  background: var(--card);
+  -webkit-overflow-scrolling: touch;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 560px;
+}
+.table th {
+  text-align: left;
+  padding: 14px 12px;
+  background: var(--yellow);
+  border-bottom: 5px solid var(--border);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.table td {
+  padding: 14px 12px;
+  border-bottom: 3px solid var(--border);
+  font-weight: 700;
+}
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+.table tbody tr.is-viewer {
+  background: var(--bg-alt);
+}
+.badge.sm {
+  font-size: 9px;
+  padding: 4px 8px;
+  border-width: 3px;
+  box-shadow: var(--shadow-badge);
+  margin-top: 0;
+}
+@media (max-width: 480px) {
+  .table {
+    font-size: 12px;
+    min-width: 400px;
+  }
+  .table th,
+  .table td {
+    padding: 10px 8px;
   }
 }

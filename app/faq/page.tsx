@@ -107,7 +107,7 @@ export default function FAQPage() {
       </div>
 
       <div className="panel" style={{ marginTop: 32 }}>
-        <h1 style={{ marginTop: 0, fontSize: "48px", textAlign: "center" }}>
+        <h1 style={{ marginTop: 0, fontSize: "clamp(28px, 8vw, 48px)", textAlign: "center" }}>
           Frequently Asked Questions
         </h1>
         <p className="muted" style={{ textAlign: "center", fontSize: "18px", marginBottom: 40 }}>

@@ -29,7 +29,7 @@ const PRINCIPLES = [
 function SectionHead({ num, title }: { num: string; title: string }) {
   return (
     <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginBottom: 24 }}>
-      <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 14, opacity: 0.5 }}>{num}</span>
+      <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: 14, opacity: 0.5 }}>{num}</span>
       <div
         style={{
           display: "inline-block", background: "var(--yellow)", border: "6px solid var(--border)",
@@ -64,7 +64,7 @@ function LogoMark({ size = 140 }: { size?: number }) {
 }
 
 const label: React.CSSProperties = {
-  fontFamily: "'Space Mono', monospace", fontSize: 11, textTransform: "uppercase",
+  fontFamily: "var(--font-mono), monospace", fontSize: 11, textTransform: "uppercase",
   letterSpacing: "0.1em", color: "var(--text-dim)", marginBottom: 12,
 };
 const cardBox: React.CSSProperties = {
@@ -106,7 +106,7 @@ export default function KitPage() {
         <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))" }}>
           {PRINCIPLES.map((p) => (
             <div key={p.n} style={{ ...cardBox, minHeight: 0, alignItems: "flex-start", textAlign: "left" }}>
-              <span style={{ fontFamily: "'Space Mono', monospace", fontSize: 13, background: "var(--purple)", border: "4px solid var(--border)", padding: "4px 10px", display: "inline-block", marginBottom: 14 }}>{p.n}</span>
+              <span style={{ fontFamily: "var(--font-mono), monospace", fontSize: 13, background: "var(--purple)", border: "4px solid var(--border)", padding: "4px 10px", display: "inline-block", marginBottom: 14 }}>{p.n}</span>
               <h3 style={{ fontSize: 17, textTransform: "uppercase", marginBottom: 8 }}>{p.t}</h3>
               <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-dim)", lineHeight: 1.5 }}>{p.d}</p>
             </div>
@@ -161,7 +161,7 @@ export default function KitPage() {
               <div style={{ height: 88, background: c.hex, borderBottom: "6px solid var(--border)" }} />
               <div style={{ padding: "12px 14px" }}>
                 <div style={{ fontSize: 14, textTransform: "uppercase" }}>{c.name}</div>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "var(--text-dim)" }}>{c.hex}</div>
+                <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: 12, color: "var(--text-dim)" }}>{c.hex}</div>
                 <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-dim)", marginTop: 6, lineHeight: 1.35 }}>{c.role}</div>
               </div>
             </div>
@@ -179,7 +179,7 @@ export default function KitPage() {
         </p>
         <div style={{ ...cardBox, marginBottom: 20, textAlign: "left", alignItems: "flex-start" }}>
           <div style={label}>Display · Space Grotesk · uppercase · -0.04em</div>
-          <div style={{ fontSize: 52, fontWeight: 700, textTransform: "uppercase", letterSpacing: "-0.04em", lineHeight: 0.9 }}>Stake. Answer.<br />Ride the multiplier.</div>
+          <div style={{ fontSize: "clamp(28px, 9vw, 52px)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "-0.04em", lineHeight: 0.9 }}>Stake. Answer.<br />Ride the multiplier.</div>
         </div>
         <div style={{ ...cardBox, marginBottom: 20, textAlign: "left", alignItems: "flex-start" }}>
           <div style={label}>Body · Space Grotesk 500</div>
@@ -187,7 +187,7 @@ export default function KitPage() {
         </div>
         <div style={{ ...cardBox, textAlign: "left", alignItems: "flex-start" }}>
           <div style={label}>Data / Mono · Space Mono 700</div>
-          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 15, fontWeight: 700 }}>0x678Ce8fF…aaDD89F &nbsp;·&nbsp; 3.75× &nbsp;·&nbsp; $0.50 STAKE</div>
+          <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: 15, fontWeight: 700 }}>0x678Ce8fF…aaDD89F &nbsp;·&nbsp; 3.75× &nbsp;·&nbsp; $0.50 STAKE</div>
         </div>
       </section>
 
@@ -224,7 +224,7 @@ export default function KitPage() {
           </div>
           <div style={cardBox}>
             <div style={label}>Shadows & borders</div>
-            <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, lineHeight: 2 }}>sm 4px · brutal 6px<br />base 8px · xl 16px<br />radius: 0 (always square)</div>
+            <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: 12, lineHeight: 2 }}>sm 4px · brutal 6px<br />base 8px · xl 16px<br />radius: 0 (always square)</div>
           </div>
         </div>
       </section>
@@ -249,7 +249,7 @@ export default function KitPage() {
               <div style={{ height: 72, background: c.hex, borderBottom: "6px solid var(--border)" }} />
               <div style={{ padding: "10px 14px", background: "var(--card)" }}>
                 <div style={{ fontSize: 13, textTransform: "uppercase" }}>{c.name}</div>
-                <div style={{ fontFamily: "'Space Mono', monospace", fontSize: 12, color: "var(--text-dim)" }}>{c.hex}</div>
+                <div style={{ fontFamily: "var(--font-mono), monospace", fontSize: 12, color: "var(--text-dim)" }}>{c.hex}</div>
               </div>
             </div>
           ))}
@@ -275,7 +275,7 @@ export default function KitPage() {
         </div>
       </section>
 
-      <div style={{ borderTop: "6px solid var(--border)", paddingTop: 24, marginTop: 40, fontFamily: "'Space Mono', monospace", fontSize: 12, color: "var(--text-dim)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+      <div style={{ borderTop: "6px solid var(--border)", paddingTop: 24, marginTop: 40, fontFamily: "var(--font-mono), monospace", fontSize: 12, color: "var(--text-dim)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
         <span>ARCADIA BRAND KIT · v1.0 · {YEAR}</span>
         <span>arcadia.uno/kit · @arcadia_uno</span>
       </div>

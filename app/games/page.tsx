@@ -7,7 +7,7 @@ import { ConnectControl } from "../../components/ConnectControl";
 import { GameIcon } from "../../components/GameIcons";
 import { TutorialModal } from "../../components/TutorialModal";
 import { SocialLinks } from "../../components/SocialLinks";
-import { MobileBottomNav } from "../../components/MobileBottomNav";
+import { BottomNav } from "../../components/BottomNav";
 
 interface GameMeta {
   id: string;
@@ -23,14 +23,6 @@ export default function GamesPage() {
   const { address } = useAccount();
   const [games, setGames] = useState<GameMeta[]>([]);
   const [showTutorial, setShowTutorial] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth <= 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
 
   useEffect(() => {
     // Show tutorial for first-time users
@@ -55,9 +47,9 @@ export default function GamesPage() {
       <div className="topbar">
         <div className="brand">Arcadia</div>
         <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-          {!isMobile && address && (
+          {address && (
             <button
-              className="btn ghost"
+              className="btn ghost desktop-only"
               onClick={() => router.push(`/profile/${address}`)}
               style={{ padding: "12px 16px", fontSize: "14px" }}
               title="View my profile"
@@ -84,19 +76,11 @@ export default function GamesPage() {
         </div>
       </div>
 
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <button
-          className="btn"
-          onClick={() => setShowTutorial(true)}
-          style={{ marginRight: 12 }}
-        >
+      <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 12, marginBottom: 32 }}>
+        <button className="btn" onClick={() => setShowTutorial(true)}>
           📚 How to Play
         </button>
-        <button
-          className="btn ghost"
-          onClick={() => router.push("/faq")}
-          style={{ marginRight: 12 }}
-        >
+        <button className="btn ghost" onClick={() => router.push("/faq")}>
           ❓ FAQ
         </button>
       </div>
@@ -145,7 +129,7 @@ export default function GamesPage() {
 
       {showTutorial && <TutorialModal onClose={handleTutorialClose} />}
 
-      <MobileBottomNav />
+      <BottomNav />
     </div>
   );
 }

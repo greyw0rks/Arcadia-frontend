@@ -30,7 +30,7 @@ export default function TermsPage() {
       </div>
 
       <div className="panel" style={{ marginTop: 32, maxWidth: 800, margin: "32px auto" }}>
-        <h1 style={{ marginTop: 0, fontSize: "40px", textAlign: "center" }}>
+        <h1 style={{ marginTop: 0, fontSize: "clamp(26px, 7vw, 40px)", textAlign: "center" }}>
           Terms of Use &amp; Intellectual Property
         </h1>
         <p className="muted" style={{ textAlign: "center", marginBottom: 40 }}>
