@@ -53,6 +53,7 @@ export function TutorialModal({ onClose }: TutorialModalProps) {
         justifyContent: "center",
         zIndex: 1000,
         padding: "20px",
+        overflowY: "auto",
       }}
       onClick={onClose}
     >
@@ -69,8 +70,10 @@ export function TutorialModal({ onClose }: TutorialModalProps) {
           onClick={onClose}
           style={{
             position: "absolute",
-            top: "20px",
-            right: "20px",
+            top: "12px",
+            right: "12px",
+            minWidth: 44,
+            minHeight: 44,
             background: "transparent",
             border: "none",
             fontSize: "24px",
@@ -87,19 +90,9 @@ export function TutorialModal({ onClose }: TutorialModalProps) {
           {currentStep.content}
         </p>
 
-        <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginBottom: "20px" }}>
+        <div className="progress-dots">
           {steps.map((_, i) => (
-            <div
-              key={i}
-              style={{
-                width: "12px",
-                height: "12px",
-                background: i === step ? "var(--accent)" : "var(--bg-alt)",
-                border: "3px solid var(--border)",
-                transform: i === step ? "scale(1.3)" : "scale(1)",
-                transition: "all 0.3s",
-              }}
-            />
+            <div key={i} className={`progress-dot ${i === step ? "active" : ""}`} />
           ))}
         </div>
 

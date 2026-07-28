@@ -340,7 +340,7 @@ export default function PlayPage() {
         </div>
       ) : phase === "playing" || phase === "reveal" ? (
         <div className="panel">
-          <div className="row">
+          <div className="row tight">
             <span className="muted">
               Question {round ? round.roundIndex + 1 : 1} / {maxRounds}
             </span>
@@ -362,7 +362,6 @@ export default function PlayPage() {
             <div
               style={{
                 overflow: "hidden",
-                borderRadius: 4,
                 position: "relative",
                 ...(round.imageStyle === 'extreme' && { maxHeight: 260 }),
               }}
@@ -378,7 +377,7 @@ export default function PlayPage() {
                   border: "8px solid var(--border)",
                   margin: "20px 0 28px",
                   fontSize: 14,
-                  color: "var(--muted)",
+                  color: "var(--text-dim)",
                 }}>
                   Loading image…
                 </div>
@@ -397,7 +396,7 @@ export default function PlayPage() {
                   gap: 12,
                 }}>
                   <span style={{ fontSize: 28 }}>🖼️</span>
-                  <span style={{ fontSize: 13, color: "var(--muted)", textAlign: "center", maxWidth: 240 }}>
+                  <span style={{ fontSize: 13, color: "var(--text-dim)", textAlign: "center", maxWidth: 240 }}>
                     Image failed to load.
                   </span>
                   <button

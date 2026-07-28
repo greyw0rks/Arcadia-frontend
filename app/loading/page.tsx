@@ -90,10 +90,10 @@ export default function LoadingScreen() {
 
         .loading-progress {
           width: 100%;
-          height: 8px;
+          height: 20px;
           background: var(--bg-alt);
-          border: 4px solid var(--border);
-          border-radius: 8px;
+          border: 5px solid var(--border);
+          box-shadow: var(--shadow-sm);
           overflow: hidden;
           margin-bottom: 20px;
         }
@@ -102,7 +102,6 @@ export default function LoadingScreen() {
           height: 100%;
           background: var(--accent);
           transition: width 0.3s ease;
-          border-radius: 4px;
         }
 
         .loading-text {
@@ -122,39 +121,27 @@ export default function LoadingScreen() {
           50% { opacity: 1; }
         }
 
-        /* Mobile styles */
         @media (max-width: 768px) {
-          .loading-screen {
-            background: var(--mobile-bg);
-          }
-
           .arcade-icon {
             font-size: 100px;
           }
 
           .loading-title {
             font-size: 40px;
-            font-family: serif;
-            color: var(--mobile-text-primary);
           }
 
           .loading-tagline {
             font-size: 16px;
-            color: var(--mobile-text-secondary);
+          }
+        }
+
+        @media (max-width: 480px) {
+          .arcade-icon {
+            font-size: 80px;
           }
 
-          .loading-progress {
-            background: var(--mobile-surface);
-            border: 1px solid var(--mobile-border);
-            border-radius: 12px;
-          }
-
-          .loading-progress-bar {
-            background: var(--mobile-accent);
-          }
-
-          .loading-text {
-            color: var(--mobile-text-secondary);
+          .loading-title {
+            font-size: 32px;
           }
         }
       `}</style>

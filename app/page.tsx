@@ -70,12 +70,7 @@ function LandingHub() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&display=swap');
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
         html { scroll-behavior: smooth; }
-        body { font-family: 'Space Grotesk', 'Space Mono', monospace; background: #F5F3FF; color: #0F0F0F; }
 
         .lp { overflow-x: hidden; }
 
