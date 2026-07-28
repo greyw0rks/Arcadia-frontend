@@ -105,6 +105,15 @@ export default function TournamentPage() {
         <ConnectControl />
       </div>
 
+      <div className="panel center mobile-only">
+        <h1 style={{ fontSize: "clamp(28px, 9vw, 40px)", marginBottom: 12 }}>🏆 Tournament</h1>
+        <span className="badge soon">Coming soon</span>
+        <p className="muted" style={{ marginTop: 16 }}>
+          Weekly tournaments are not live yet. Keep playing — your games will count when they open.
+        </p>
+      </div>
+
+      <div className="desktop-only-block">
       <div className="hero">
         <h1>🏆 Weekly Tournament</h1>
         <div className="row">
@@ -239,6 +248,7 @@ export default function TournamentPage() {
           </table>
         </div>
       )}
+      </div>
 
       <BottomNav />
     </div>
