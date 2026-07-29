@@ -8,30 +8,12 @@ export function TokenSwitcher() {
   const { token, setToken } = useChain();
   const ids = Object.keys(CELO_TOKENS) as CeloToken[];
   return (
-    <div style={{ display: "inline-flex", border: "4px solid var(--border)", background: "var(--card)", boxShadow: "var(--shadow-sm)" }}>
-      {ids.map((id, i) => {
-        const active = token === id;
-        return (
-          <button
-            key={id}
-            onClick={() => setToken(id)}
-            style={{
-              padding: "6px 14px",
-              minHeight: 44,
-              border: "none",
-              borderRight: i < ids.length - 1 ? "4px solid var(--border)" : "none",
-              background: active ? "var(--accent)" : "var(--card)",
-              color: "var(--text)",
-              fontWeight: 800,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
-            aria-pressed={active}
-          >
-            {CELO_TOKENS[id].label}
-          </button>
-        );
-      })}
+    <div className="token-switcher">
+      {ids.map((id) => (
+        <button key={id} onClick={() => setToken(id)} aria-pressed={token === id}>
+          {CELO_TOKENS[id].label}
+        </button>
+      ))}
     </div>
   );
 }
