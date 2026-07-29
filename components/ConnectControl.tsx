@@ -20,7 +20,7 @@ export function TokenSwitcher() {
 
 export function ConnectControl() {
   return (
-    <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+    <div className="connect-control">
       <TokenSwitcher />
       <ConnectButton showBalance={false} chainStatus="icon" />
     </div>
