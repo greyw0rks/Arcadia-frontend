@@ -931,24 +931,29 @@ a {
 }
 @media (max-width: 768px) {
   .token-switcher {
-    border-width: 3px;
+    border-width: 2px;
+    box-shadow: 2px 2px 0 var(--border);
   }
   .token-switcher button {
-    padding: 4px 10px;
-    min-height: 36px;
-    font-size: 13px;
-    border-right-width: 3px;
+    padding: 2px 7px;
+    min-height: 26px;
+    font-size: 10px;
+    letter-spacing: -0.02em;
+    border-right-width: 2px;
   }
 }
 @media (max-width: 480px) {
-  .token-switcher {
-    border-width: 2px;
-  }
   .token-switcher button {
-    padding: 3px 8px;
-    min-height: 30px;
-    font-size: 11px;
-    border-right-width: 2px;
+    padding: 2px 5px;
+    min-height: 22px;
+    font-size: 9px;
+  }
+}
+@media (max-width: 360px) {
+  .token-switcher button {
+    padding: 1px 4px;
+    min-height: 20px;
+    font-size: 8px;
   }
 }
 
