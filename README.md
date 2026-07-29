@@ -8,11 +8,9 @@ in `next.config.js`.
 > Same Next.js codebase as `arcadia-backend`, deployed with `BACKEND_URL` **set**. The backend is the
 > same code with it **unset**, so it serves the stateful API itself.
 
-Design language is neo-brutalism — hard offset shadows, heavy borders, no gradients. The
-`universal-neo-brutalist-ui` branch unifies it across all viewports: no separate mobile theme and no
-JS breakpoint detection, just CSS media queries in `app/globals.css`, which avoids the hydration
-flashes the old `innerWidth` checks caused. `main` still carries the older split `mobile.css` until
-that branch lands.
+Design language is neo-brutalism — hard offset shadows, heavy borders, no gradients — unified across
+all viewports. There is no separate mobile theme and no JS breakpoint detection, just CSS media
+queries in `app/globals.css`, which avoids the hydration flashes the old `innerWidth` checks caused.
 
 ## Run locally
 
