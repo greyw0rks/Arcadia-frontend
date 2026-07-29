@@ -9,8 +9,8 @@ in `next.config.js`.
 > same code with it **unset**, so it serves the stateful API itself.
 
 Design language is neo-brutalism — hard offset shadows, heavy borders, no gradients — unified across
-all viewports as of `5750e57`. There is no separate mobile theme and no JS breakpoint detection;
-responsiveness is pure CSS media queries in `app/globals.css`, which avoids hydration flashes.
+all viewports. There is no separate mobile theme and no JS breakpoint detection, just CSS media
+queries in `app/globals.css`, which avoids the hydration flashes the old `innerWidth` checks caused.
 
 ## Run locally
 
