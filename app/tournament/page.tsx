@@ -9,10 +9,10 @@ export default function TournamentPage() {
 
   return (
     <div className="container">
-      <div className="topbar">
+      <div className="topbar compact">
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <button
-            className="btn ghost"
+            className="btn ghost back-btn"
             onClick={() => router.back()}
             style={{ padding: "12px 16px", fontSize: 20 }}
             title="Back"

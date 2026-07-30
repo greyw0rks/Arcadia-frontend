@@ -9,10 +9,10 @@ export default function TermsPage() {
 
   return (
     <div className="container">
-      <div className="topbar">
+      <div className="topbar compact">
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           <button
-            className="btn ghost"
+            className="btn ghost back-btn"
             onClick={() => router.back()}
             style={{ padding: "12px 16px", fontSize: "20px" }}
             title="Go back"

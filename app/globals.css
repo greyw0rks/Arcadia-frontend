@@ -943,6 +943,7 @@ a {
   font-family: inherit;
   font-weight: 800;
   cursor: pointer;
+  white-space: nowrap;
 }
 .token-switcher button:last-child {
   border-right: none;
@@ -975,9 +976,9 @@ a {
 }
 @media (max-width: 360px) {
   .token-switcher button {
-    padding: 1px 4px;
+    padding: 2px 4px;
     min-height: 20px;
-    font-size: 8px;
+    font-size: 9px;
   }
   .brand {
     font-size: 16px;
@@ -1115,5 +1116,81 @@ a {
   .table th,
   .table td {
     padding: 10px 8px;
+  }
+}
+
+/* Topbar fitting on mobile. The brand is the only flexible item in the row, so
+   it absorbs all the overflow — without min-width:0 it keeps its intrinsic text
+   width and paints on top of the token switcher. Sub-pages additionally spend
+   ~48px on a back button, so they opt into .topbar.compact to buy that back;
+   the games lobby keeps the default sizing. */
+@media (max-width: 768px) {
+  .topbar .brand {
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .topbar > :first-child {
+    min-width: 0;
+    overflow: hidden;
+  }
+  /* RainbowKit ships its own sizing; at 164px it alone eats half a 390px row. */
+  [data-testid="rk-connect-button"] {
+    font-size: 13px !important;
+    padding: 0 10px !important;
+    height: 34px !important;
+  }
+  .topbar.compact .brand {
+    font-size: 16px;
+    padding: 4px 10px;
+    border-width: 3px;
+    box-shadow: var(--shadow-sm);
+  }
+  .topbar.compact .brand::before {
+    display: none;
+  }
+  .topbar.compact .back-btn {
+    padding: 4px 10px !important;
+    font-size: 15px !important;
+    border-width: 3px;
+    box-shadow: var(--shadow-sm);
+  }
+  .topbar.compact .back-btn::after {
+    display: none;
+  }
+  .topbar.compact > :first-child {
+    gap: 8px !important;
+  }
+}
+@media (max-width: 480px) {
+  [data-testid="rk-connect-button"] {
+    font-size: 12px !important;
+    padding: 0 8px !important;
+    height: 30px !important;
+  }
+  .topbar.compact [data-testid="rk-connect-button"] {
+    font-size: 11px !important;
+    padding: 0 7px !important;
+  }
+  .topbar.compact .connect-control {
+    gap: 5px;
+  }
+  .topbar.compact .brand {
+    font-size: 14px;
+    padding: 4px 8px;
+  }
+}
+@media (max-width: 360px) {
+  .topbar.compact .brand {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+  .topbar.compact .back-btn {
+    padding: 3px 7px !important;
+    font-size: 13px !important;
+  }
+  .topbar.compact [data-testid="rk-connect-button"] {
+    font-size: 10px !important;
+    padding: 0 6px !important;
   }
 }
