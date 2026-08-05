@@ -23,6 +23,9 @@ export default function GamesPage() {
   const { address } = useAccount();
   const [games, setGames] = useState<GameMeta[]>([]);
   const [showTutorial, setShowTutorial] = useState(false);
+  // Ranked (the weekly pooled mode) is built but not open to players yet, so the toggle shows a
+  // coming-soon panel instead of routing into /v2. Flip this to a router.push when Ranked launches.
+  const [showRankedSoon, setShowRankedSoon] = useState(false);
 
   useEffect(() => {
     // Show tutorial for first-time users
@@ -64,17 +67,48 @@ export default function GamesPage() {
       <div className="hero">
         <h1>Stake. Play. Win.</h1>
         <p className="tagline">
-          An on-chain arcade where your stake rides a live multiplier. Every correct answer grows your
-          payout — every miss shrinks it. Cash out at stake × multiplier.
+          An on-chain arcade. Each game is one round of 12 questions — answer 9 or more to win, 4 or
+          fewer to lose, anything between keeps your stake. Cash out at stake × multiplier.
         </p>
         <div className="mechanic">
-          <span>Start at <b>1.0x</b></span>
+          <span className="up">9+ correct → ×1.1–1.4</span>
           <span>·</span>
-          <span className="up">+0.1x correct</span>
+          <span>5–8 → ×1.0</span>
           <span>·</span>
-          <span className="down">−0.1x wrong</span>
+          <span className="down">4 or fewer → ×0.9–0.5</span>
         </div>
       </div>
+
+      <div className="mode-switch">
+        <button className="mode-option active" type="button" aria-pressed="true">
+          <span className="mode-name">Casual</span>
+          <span className="badge live">Live</span>
+          <span className="mode-blurb">Play now, win now. Stake per game, settle instantly.</span>
+        </button>
+        <button
+          className="mode-option"
+          type="button"
+          aria-pressed="false"
+          onClick={() => setShowRankedSoon(true)}
+        >
+          <span className="mode-name">Ranked</span>
+          <span className="badge soon">Coming soon</span>
+          <span className="mode-blurb">One weekly buy-in, a shared pot, and a leaderboard payout.</span>
+        </button>
+      </div>
+
+      {showRankedSoon && (
+        <div className="panel center" style={{ marginBottom: 32 }}>
+          <h2 style={{ marginBottom: 12 }}>Ranked is coming soon</h2>
+          <p className="muted" style={{ maxWidth: 460, marginInline: "auto" }}>
+            Ranked is the weekly mode: one buy-in, play through the week, and the pot is shared out
+            by the leaderboard at the weekend. It is not open yet — Casual is live below.
+          </p>
+          <button className="btn" style={{ marginTop: 20 }} onClick={() => setShowRankedSoon(false)}>
+            Got it
+          </button>
+        </div>
+      )}
 
       <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 12, marginBottom: 32 }}>
         <button className="btn" onClick={() => setShowTutorial(true)}>

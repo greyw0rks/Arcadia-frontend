@@ -46,12 +46,12 @@ const STEPS = [
   {
     n: "02",
     title: "Pick a game & stake",
-    body: "Choose from 12 game modes. Stake from $0.01 to $1. More stake = more rounds = harder questions.",
+    body: "Choose from 12 game modes. Stake from $0.01 to $1. Every game is one round of 12 hard questions.",
   },
   {
     n: "03",
     title: "Answer & collect",
-    body: "Score gets multiplied round-by-round. Finish strong and the payout settles on-chain instantly.",
+    body: "Answer 9+ of 12 to win — ×1.1 rising to ×1.4 for a perfect round. 5–8 holds your stake, 4 or fewer loses (down to ×0.5). The payout settles on-chain instantly.",
   },
 ];
 
