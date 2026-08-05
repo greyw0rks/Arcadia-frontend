@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 import { useArcade } from "../../../lib/useArcade";
 import { formatMultiplier, celoTokenMeta } from "../../../lib/contract";
-import { MAX_STAKE, MIN_STAKE, rawStakeFraction, roundsFor } from "../../../lib/difficulty";
+import { MAX_STAKE, MIN_STAKE } from "../../../lib/difficulty";
 import { useChain } from "../../../lib/chainContext";
 import { ConnectControl } from "../../../components/ConnectControl";
 
@@ -46,7 +46,13 @@ export default function PlayPage() {
   } | null>(null);
 
   const [sessionId, setSessionId] = useState<`0x${string}` | null>(null);
-  const [maxRounds, setMaxRounds] = useState(5);
+  // Casual is one round of `questions` (12); the on-chain scoring event count committed at
+  // startSession is data.maxRounds (1). The multiplier moves ONCE at the end, from the correct-count.
+  const [questions, setQuestions] = useState(12);
+  const [passMark, setPassMark] = useState(9);
+  const [failMark, setFailMark] = useState(4);
+  const [correctSoFar, setCorrectSoFar] = useState(0);
+  const [answered, setAnswered] = useState(0);
   const [round, setRound] = useState<RoundView | null>(null);
   const [multiplierBp, setMultiplierBp] = useState(10000);
   const [selected, setSelected] = useState<number | null>(null);
@@ -70,7 +76,6 @@ export default function PlayPage() {
         const m = (d.games ?? []).find((g: any) => g.id === game);
         if (m) {
           setMeta(m);
-          setMaxRounds(m.maxRounds);
         }
       })
       .catch(() => {});
@@ -124,7 +129,11 @@ export default function PlayPage() {
       if (!res.ok) throw new Error(data.error ?? "session failed");
       const sid = data.sessionId as `0x${string}`;
       setSessionId(sid);
-      setMaxRounds(data.maxRounds);
+      setQuestions(data.questions ?? 12);
+      setPassMark(data.passMark ?? 9);
+      setFailMark(data.failMark ?? 4);
+      setCorrectSoFar(0);
+      setAnswered(0);
 
       setStatus(`Approve ${stakeSymbol} + confirm stake in your wallet…`);
       await arcade.startSession(sid, stake, data.maxRounds);
@@ -183,7 +192,10 @@ export default function PlayPage() {
         if (!r.ok) throw new Error(d.error ?? "answer failed");
         setCorrectIndex(d.correctIndex);
         setLastResult(d.result);
-        setMultiplierBp(d.multiplierBp);
+        // Casual scoring is a single three-zone result at the end; the per-answer walk in d.multiplierBp
+        // is NOT the payout, so we track the correct-count toward the pass mark instead of showing it.
+        setAnswered((n) => n + 1);
+        if (d.result === "correct") setCorrectSoFar((n) => n + 1);
         setPhase("reveal");
 
         setTimeout(async () => {
@@ -220,8 +232,8 @@ export default function PlayPage() {
       await arcade.settle(sid, d.multiplierBp, d.signature);
       setPhase("done");
 
-      // Show confetti if multiplier >= 1.0x
-      if (d.multiplierBp >= 10000) {
+      // Confetti only on an actual win (> 1.0x); a neutral 1.0x just returns the stake.
+      if (d.multiplierBp > 10000) {
         createConfetti();
       }
     } catch (e: any) {
@@ -240,15 +252,18 @@ export default function PlayPage() {
     return () => clearTimeout(t);
   }, [phase, round, secsLeft, submit]);
 
-  const up = multiplierBp >= 10000;
+  const up = (finalBp ?? multiplierBp) >= 10000;
   const estPayout = finalBp != null ? (Number(stake) * 0.97 * finalBp) / 10000 : null;
 
-  // Live round-count preview from the chosen stake (higher bet => more rounds). Difficulty is fixed
-  // hard for every session, so no difficulty label is shown.
   const stakeNum = Number(stake) || 0;
   const overMax = stakeNum > MAX_STAKE["celo"];
   const underMin = stakeNum > 0 && stakeNum < MIN_STAKE["celo"];
-  const previewRounds = meta ? roundsFor(rawStakeFraction(stakeNum, "celo"), meta.bankSize) : maxRounds;
+  // Pass-mark projections for the in-round HUD. The round is decided by the final correct-count, not
+  // by any per-answer walk: ≥ passMark wins (×1.1), ≤ failMark loses (×0.9), between holds (×1.0).
+  const remaining = questions - answered;
+  const winLocked = correctSoFar >= passMark; // pass mark already reached
+  const winImpossible = correctSoFar + remaining < passMark; // can no longer reach the pass mark
+  const lossLocked = correctSoFar + remaining <= failMark; // can no longer escape the fail mark
 
   return (
     <div className="container">
@@ -283,12 +298,15 @@ export default function PlayPage() {
             {meta ? meta.title : "Loading…"}
           </h2>
           <p className="muted">
-            {meta?.description} Start at 1.0x; +0.1x per correct answer, −0.1x per miss (you can drop
-            below 1.0x). A 3% entry rake applies. Payout = stake × final multiplier.
+            {meta?.description} One round of {questions} questions. Answer <b>{passMark}+</b> right to
+            win — ×1.1 at {passMark}, and +0.1x for every extra correct up to ×1.4 for a perfect{" "}
+            {questions}. <b>{failMark} or fewer</b> loses (×0.9 down to ×0.5); anything between holds
+            at ×1.0. A 3% entry rake applies. Payout = stake × final multiplier.
           </p>
           <p className="muted" style={{ marginTop: 8 }}>
-            <b>The higher your bet, the more rounds you play</b> — and every session is hard. Bet{" "}
-            {MIN_STAKE["celo"]}–{MAX_STAKE["celo"]} {stakeSymbol} per game.
+            <b>Every session is {questions} questions and every question is hard.</b> Bet{" "}
+            {MIN_STAKE["celo"]}–{MAX_STAKE["celo"]} {stakeSymbol} per game — a bigger bet raises the
+            payout, not the pass mark.
           </p>
           <div className="row" style={{ marginTop: 20, justifyContent: "flex-start", gap: 16 }}>
             <input
@@ -307,8 +325,8 @@ export default function PlayPage() {
           </div>
           <div className="row" style={{ marginTop: 12, justifyContent: "flex-start", gap: 16 }}>
             <span className="muted">
-              {previewRounds} rounds · up to {formatMultiplier(10000 + 1000 * previewRounds)} · more
-              rounds at higher bets
+              {questions} questions · win {formatMultiplier(11000)}–{formatMultiplier(14000)} · hold{" "}
+              {formatMultiplier(10000)} · lose {formatMultiplier(9000)}–{formatMultiplier(5000)}
             </span>
           </div>
           {IMAGE_GAMES.has(game) && (
@@ -342,11 +360,23 @@ export default function PlayPage() {
         <div className="panel">
           <div className="row tight">
             <span className="muted">
-              Question {round ? round.roundIndex + 1 : 1} / {maxRounds}
+              Question {round ? round.roundIndex + 1 : 1} / {questions}
             </span>
-            <span className={`multiplier ${up ? "up" : "down"}`} style={{ fontSize: 28 }}>
-              {formatMultiplier(multiplierBp)}
+            <span
+              className={winLocked ? "up" : winImpossible ? "down" : ""}
+              style={{ fontWeight: 900, fontSize: 22 }}
+            >
+              {correctSoFar} / {passMark} to win
             </span>
+          </div>
+          <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>
+            {winLocked
+              ? "Pass mark reached — each further correct adds +0.1x, up to ×1.4."
+              : winImpossible
+                ? lossLocked
+                  ? "Below the fail mark — each further miss costs another 0.1x (down to ×0.5)."
+                  : "Win's out of reach — stay above the fail mark to keep ×1.0."
+                : `Answer ${passMark}+ to win (×1.1 and up) · ${failMark} or fewer loses (×0.9 and down) · between holds (×1.0)`}
           </div>
 
           <div className="timer-track">
@@ -476,6 +506,8 @@ export default function PlayPage() {
                 setFinalBp(null);
                 setMultiplierBp(10000);
                 setSessionId(null);
+                setCorrectSoFar(0);
+                setAnswered(0);
               }}
             >
               Play again
