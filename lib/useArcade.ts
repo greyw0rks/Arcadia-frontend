@@ -14,7 +14,7 @@ const ARCADIA_ATTRIBUTION_SUFFIX = "61726361646961070080218021802180218021802180
 
 // Detect MiniPay wallet — it injects window.ethereum.isMiniPay. MiniPay manages feeCurrency
 // itself, so we must NOT pass a custom feeCurrency or the tx will be rejected.
-function isMiniPay(): boolean {
+export function isMiniPay(): boolean {
   if (typeof window === "undefined") return false;
   return (window as { ethereum?: { isMiniPay?: boolean } }).ethereum?.isMiniPay === true;
 }
@@ -56,7 +56,15 @@ function useCeloArcade(token: CeloToken): ArcadeApi {
   ): Promise<`0x${string}`> {
     const calldata = encodeFunctionData({ abi: ARCADE_ABI, functionName, args } as Parameters<typeof encodeFunctionData>[0]);
     const data = (calldata + ARCADIA_ATTRIBUTION_SUFFIX) as `0x${string}`;
-    return sendTransactionAsync({ to: arcadeAddress, data, ...(feeCurrency ? { feeCurrency } : {}) });
+    // MiniPay only processes legacy (type 0) transactions — it ignores EIP-1559 fee fields.
+    // Pass type explicitly so wagmi doesn't upgrade to type 2 inside MiniPay.
+    const miniPay = isMiniPay();
+    return sendTransactionAsync({
+      to: arcadeAddress,
+      data,
+      ...(feeCurrency ? { feeCurrency } : {}),
+      ...(miniPay ? { type: "legacy" } : {}),
+    });
   }
 
   async function ensureAllowance(stakeWei: bigint) {
