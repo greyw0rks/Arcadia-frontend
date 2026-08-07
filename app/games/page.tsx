@@ -137,6 +137,9 @@ export default function GamesPage() {
         <button className="btn ghost" onClick={() => router.push("/faq")}>
           ❓ FAQ
         </button>
+        <a href="mailto:play@arcadia.uno" className="btn ghost">
+          💬 Support
+        </a>
       </div>
 
       {!showCasualGames && !showRankedSoon && (
@@ -179,7 +182,10 @@ export default function GamesPage() {
 
       <div style={{ marginTop: 48, textAlign: "center", paddingBottom: 40 }}>
         <p className="muted" style={{ fontSize: 14, marginBottom: 12 }}>
-          Built on Celo · <a href="/faq" style={{ textDecoration: "underline" }}>FAQ</a>
+          Built on Celo · <a href="/faq" style={{ textDecoration: "underline" }}>FAQ</a> ·{" "}
+          <a href="/terms" style={{ textDecoration: "underline" }}>Terms</a> ·{" "}
+          <a href="/privacy" style={{ textDecoration: "underline" }}>Privacy</a> ·{" "}
+          <a href="mailto:play@arcadia.uno" style={{ textDecoration: "underline" }}>Support</a>
         </p>
         <p className="muted" style={{ fontSize: 12, marginBottom: 4 }}>
           &copy; {new Date().getFullYear()} greyw0rks. All rights reserved.

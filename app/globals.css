@@ -1078,8 +1078,10 @@ a {
     display: flex;
   }
 }
-.bottom-nav button {
+.bottom-nav button,
+.bottom-nav a {
   flex: 1;
+  text-decoration: none;
   min-height: 56px;
   display: flex;
   flex-direction: column;
@@ -1096,23 +1098,28 @@ a {
   cursor: pointer;
   transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.bottom-nav button:last-child {
+.bottom-nav button:last-child,
+.bottom-nav a:last-child {
   border-right: none;
 }
-.bottom-nav button span {
+.bottom-nav button span,
+.bottom-nav a span {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
-.bottom-nav button.active {
+.bottom-nav button.active,
+.bottom-nav a.active {
   background: var(--yellow);
 }
-.bottom-nav button:active {
+.bottom-nav button:active,
+.bottom-nav a:active {
   transform: translateY(2px);
 }
 @media (max-width: 360px) {
-  .bottom-nav button span {
+  .bottom-nav button span,
+  .bottom-nav a span {
     font-size: 9px;
   }
 }

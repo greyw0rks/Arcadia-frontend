@@ -42,6 +42,10 @@ export function BottomNav() {
         👤
         <span>You</span>
       </button>
+      <a href="mailto:play@arcadia.uno" aria-label="Support">
+        💬
+        <span>Support</span>
+      </a>
     </nav>
   );
 }
