@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
-import { useArcade } from "../../../lib/useArcade";
+import { parseUnits } from "viem";
+import { useArcade, isMiniPay } from "../../../lib/useArcade";
 import { formatMultiplier, celoTokenMeta } from "../../../lib/contract";
 import { MAX_STAKE, MIN_STAKE } from "../../../lib/difficulty";
 import { useChain } from "../../../lib/chainContext";
@@ -117,6 +118,18 @@ export default function PlayPage() {
       setError(`Max bet is ${MAX_STAKE["celo"]} ${stakeSymbol} per game.`);
       return;
     }
+    const miniPay = isMiniPay();
+
+    // Pre-flight balance check on MiniPay — send the player to top up rather than failing the tx.
+    if (miniPay) {
+      const { decimals } = celoTokenMeta(token);
+      const bal = await arcade.balance();
+      if (bal < parseUnits(stake, decimals)) {
+        window.location.href = "https://link.minipay.xyz/add_cash?tokens=USDm,USDC,USDT";
+        return;
+      }
+    }
+
     setPhase("starting");
     try {
       setStatus("Creating session…");
@@ -142,7 +155,14 @@ export default function PlayPage() {
       await loadRound(sid);
       setPhase("playing");
     } catch (e: any) {
-      fail(e?.shortMessage ?? e?.message ?? "Failed to start game.");
+      const msg = e?.shortMessage ?? e?.message ?? "";
+      // A transfer/allowance failure inside MiniPay is nearly always an empty balance.
+      if (miniPay && (msg.toLowerCase().includes("transfer") || msg.toLowerCase().includes("allowance"))) {
+        window.location.href = "https://link.minipay.xyz/add_cash?tokens=USDm,USDC,USDT";
+        setPhase("setup");
+        return;
+      }
+      fail(msg || "Failed to start game.");
     }
   }
 
