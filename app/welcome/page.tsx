@@ -2,31 +2,55 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useAppConfig } from "../../lib/config";
 
 export default function WelcomePage() {
   const router = useRouter();
+  const config = useAppConfig();
+  const isFree = config?.playMode === "free";
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const slides = [
-    {
-      title: "Arcadia Awaits",
-      subtitle: "A new era of gaming is here",
-      icon: "🎮",
-      description: "Welcome to Arcadia, where skill meets stake"
-    },
-    {
-      title: "Stake & Play",
-      subtitle: "Your stake rides a live multiplier",
-      icon: "💰",
-      description: "Every correct answer grows your payout"
-    },
-    {
-      title: "Win Big",
-      subtitle: "Cash out at stake × multiplier",
-      icon: "🏆",
-      description: "13 games, endless possibilities"
-    }
-  ];
+  const slides = isFree
+    ? [
+        {
+          title: "Arcadia Awaits",
+          subtitle: "A new era of gaming is here",
+          icon: "🎮",
+          description: "Welcome to Arcadia, where skill is rewarded",
+        },
+        {
+          title: "Play & Earn XP",
+          subtitle: "Every correct answer earns XP",
+          icon: "⚡",
+          description: "Finish a round for a completion bonus on top",
+        },
+        {
+          title: "Climb the Ranks",
+          subtitle: "Rack up XP and top the leaderboard",
+          icon: "🏆",
+          description: "13 games, endless possibilities — free to play",
+        },
+      ]
+    : [
+        {
+          title: "Arcadia Awaits",
+          subtitle: "A new era of gaming is here",
+          icon: "🎮",
+          description: "Welcome to Arcadia, where skill meets stake",
+        },
+        {
+          title: "Stake & Play",
+          subtitle: "Your stake rides a live multiplier",
+          icon: "💰",
+          description: "Every correct answer grows your payout",
+        },
+        {
+          title: "Win Big",
+          subtitle: "Cash out at stake × multiplier",
+          icon: "🏆",
+          description: "13 games, endless possibilities",
+        },
+      ];
 
   const handleNext = () => {
     if (currentSlide < slides.length - 1) {

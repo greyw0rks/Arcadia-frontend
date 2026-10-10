@@ -35,7 +35,7 @@ export default function LoadingScreen() {
         <h1 className="loading-title">Arcadia</h1>
 
         {/* Tagline */}
-        <p className="loading-tagline">Stake. Play. Win.</p>
+        <p className="loading-tagline">Play. Answer. Earn XP.</p>
 
         {/* Progress bar */}
         <div className="loading-progress">
