@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppConfig } from "../lib/config";
 
 interface TutorialModalProps {
   onClose: () => void;
@@ -8,8 +9,33 @@ interface TutorialModalProps {
 
 export function TutorialModal({ onClose }: TutorialModalProps) {
   const [step, setStep] = useState(0);
+  const config = useAppConfig();
+  const isFree = config?.playMode !== "stake";
 
-  const steps = [
+  const freeSteps = [
+    {
+      title: "Welcome to Arcadia! 🎮",
+      content: "Arcadia is an on-chain arcade of skill-based games. Play, answer questions, and earn XP — it's free!",
+    },
+    {
+      title: "How It Works ⚡",
+      content: "Each game is one round of 12 hard questions. Every question you get right earns XP, and finishing the round earns a completion bonus on top.",
+    },
+    {
+      title: "Climb the Leaderboard 🏆",
+      content: "Your XP is tracked per wallet and shown on your profile and the Ranks leaderboard. The more you play and the more you get right, the higher you climb.",
+    },
+    {
+      title: "Free to Play 🎉",
+      content: "There's no stake and no entry fee — nothing to lose. Just connect your wallet so your XP is tracked across sessions.",
+    },
+    {
+      title: "Ready to Play? 🚀",
+      content: "Connect your wallet, choose a game, and test your skills. Good luck!",
+    },
+  ];
+
+  const stakeSteps = [
     {
       title: "Welcome to Arcadia! 🎮",
       content: "Arcadia is an on-chain arcade where you stake stablecoins and play skill-based games. Your payout depends on your performance!",
@@ -35,6 +61,8 @@ export function TutorialModal({ onClose }: TutorialModalProps) {
       content: "Connect your wallet, choose a game, stake some stablecoins, and test your skills. Good luck!",
     },
   ];
+
+  const steps = isFree ? freeSteps : stakeSteps;
 
   const currentStep = steps[step];
   const isLastStep = step === steps.length - 1;

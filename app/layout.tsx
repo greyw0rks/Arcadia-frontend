@@ -18,7 +18,7 @@ const mono = Space_Mono({
 
 export const metadata: Metadata = {
   title: "Arcadia — quiz arcade on Celo",
-  description: "Stake USDm, USDC or USDT on Celo. Answer questions. Win on-chain.",
+  description: "Play skill-based quiz games on Celo. Answer questions, earn XP, climb the leaderboard.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },

@@ -8,6 +8,7 @@ import { useArcade, isMiniPay } from "../../../lib/useArcade";
 import { formatMultiplier, celoTokenMeta } from "../../../lib/contract";
 import { MAX_STAKE, MIN_STAKE } from "../../../lib/difficulty";
 import { useChain } from "../../../lib/chainContext";
+import { useAppConfig } from "../../../lib/config";
 import { ConnectControl } from "../../../components/ConnectControl";
 
 import { createConfetti } from "../../../lib/confetti";
@@ -29,6 +30,9 @@ export default function PlayPage() {
   const router = useRouter();
   const { token } = useChain();
   const stakeSymbol = celoTokenMeta(token).symbol;
+
+  const config = useAppConfig();
+  const isFree = config?.playMode === "free";
 
   const { address, isConnected } = useAccount();
 
@@ -60,6 +64,10 @@ export default function PlayPage() {
   const [correctIndex, setCorrectIndex] = useState<number | null>(null);
   const [lastResult, setLastResult] = useState<"correct" | "wrong" | null>(null);
   const [finalBp, setFinalBp] = useState<number | null>(null);
+  // Free-to-play XP mode results.
+  const [xpEarned, setXpEarned] = useState<number | null>(null);
+  const [totalXp, setTotalXp] = useState<number | null>(null);
+  const [correctFinal, setCorrectFinal] = useState<number | null>(null);
   const [secsLeft, setSecsLeft] = useState(0);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -105,6 +113,35 @@ export default function PlayPage() {
   async function begin() {
     setError("");
     if (!address) return;
+
+    // ── Free-to-play XP mode: no stake, no wallet payment. Create the session and jump straight to
+    // the first question. The staking branch below is preserved for when PLAY_MODE=stake. ──
+    if (isFree) {
+      setPhase("starting");
+      try {
+        setStatus("Starting your game…");
+        const res = await fetch("/api/session", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ game, player: address, token }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error ?? "session failed");
+        const sid = data.sessionId as `0x${string}`;
+        setSessionId(sid);
+        setQuestions(data.questions ?? 12);
+        setPassMark(data.passMark ?? 9);
+        setFailMark(data.failMark ?? 4);
+        setCorrectSoFar(0);
+        setAnswered(0);
+        await loadRound(sid);
+        setPhase("playing");
+      } catch (e: any) {
+        fail(e?.shortMessage ?? e?.message ?? "Failed to start game.");
+      }
+      return;
+    }
+
     const amt = Number(stake);
     if (!(amt > 0)) {
       setError("Enter a stake greater than 0.");
@@ -235,6 +272,29 @@ export default function PlayPage() {
 
   // ---- finalize + settle ----
   async function finalize(sid: `0x${string}`) {
+    // ── Free-to-play XP mode: finalize awards Arcade XP server-side; nothing is signed or settled. ──
+    if (isFree) {
+      try {
+        setPhase("settling");
+        setStatus("Tallying your XP…");
+        const r = await fetch("/api/finalize", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ sessionId: sid }),
+        });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error ?? "finalize failed");
+        setXpEarned(d.xpEarned ?? 0);
+        setTotalXp(d.totalXp ?? null);
+        setCorrectFinal(d.correct ?? null);
+        setPhase("done");
+        createConfetti();
+      } catch (e: any) {
+        fail(e?.message ?? "Failed to finish game.");
+      }
+      return;
+    }
+
     try {
       setPhase("settling");
       setStatus("Signing final result…");
@@ -308,8 +368,9 @@ export default function PlayPage() {
         <div className="panel center">
           <h2>Connect your wallet to play</h2>
           <p className="muted">
-            You&apos;ll stake {stakeSymbol} on Celo ({MIN_STAKE["celo"]}–{MAX_STAKE["celo"]}{" "}
-            {stakeSymbol} per game).
+            {isFree
+              ? "Connect your wallet to start playing and earning XP. It's free — no stake, no fees."
+              : `You'll stake ${stakeSymbol} on Celo (${MIN_STAKE["celo"]}–${MAX_STAKE["celo"]} ${stakeSymbol} per game).`}
           </p>
         </div>
       ) : phase === "setup" ? (
@@ -317,6 +378,31 @@ export default function PlayPage() {
           <h2 style={{ marginTop: 0 }}>
             {meta ? meta.title : "Loading…"}
           </h2>
+          {isFree ? (
+            <>
+              <p className="muted">
+                {meta?.description} One round of {questions} hard questions. Answer <b>{passMark}+</b>{" "}
+                right to clear it. The more you get right, the more <b>XP</b> you earn — and every
+                game you finish earns XP. Free to play, no stake, no fees.
+              </p>
+              <p className="muted" style={{ marginTop: 8 }}>
+                <b>Every session is {questions} questions and every question is hard.</b> Climb the
+                XP leaderboard.
+              </p>
+              <div className="row" style={{ marginTop: 20, justifyContent: "flex-start", gap: 16 }}>
+                <button className="btn" onClick={begin}>
+                  Play &amp; Earn XP
+                </button>
+              </div>
+              {IMAGE_GAMES.has(game) && (
+                <div className="info" style={{ marginTop: 16, fontWeight: 700 }}>
+                  ⚠️ This game loads images each round. Make sure you have a <strong>reliable and fast internet connection</strong> before playing — slow connections may cause images to fail mid-round.
+                </div>
+              )}
+              {error && <div className="error">{error}</div>}
+            </>
+          ) : (
+          <>
           <p className="muted">
             {meta?.description} One round of {questions} questions. Answer <b>{passMark}+</b> right to
             win — ×1.1 at {passMark}, and +0.1x for every extra correct up to ×1.4 for a perfect{" "}
@@ -361,6 +447,8 @@ export default function PlayPage() {
             <div className="error">Max bet is {MAX_STAKE["celo"]} {stakeSymbol} per game.</div>
           )}
           {error && <div className="error">{error}</div>}
+          </>
+          )}
         </div>
       ) : phase === "starting" || phase === "settling" ? (
         <div className="panel center">
@@ -383,14 +471,16 @@ export default function PlayPage() {
               Question {round ? round.roundIndex + 1 : 1} / {questions}
             </span>
             <span
-              className={winLocked ? "up" : winImpossible ? "down" : ""}
+              className={isFree ? "up" : winLocked ? "up" : winImpossible ? "down" : ""}
               style={{ fontWeight: 900, fontSize: 22 }}
             >
-              {correctSoFar} / {passMark} to win
+              {isFree ? `${correctSoFar} correct` : `${correctSoFar} / ${passMark} to win`}
             </span>
           </div>
           <div className="muted" style={{ fontSize: 13, marginTop: 4 }}>
-            {winLocked
+            {isFree
+              ? "Every correct answer earns XP — finish the round for a completion bonus."
+              : winLocked
               ? "Pass mark reached — each further correct adds +0.1x, up to ×1.4."
               : winImpossible
                 ? lossLocked
@@ -505,15 +595,37 @@ export default function PlayPage() {
         </div>
       ) : phase === "done" ? (
         <div className="panel center">
-          <p className="muted">Final multiplier</p>
-          <div className={`multiplier ${up ? "up" : "down"}`}>
-            {formatMultiplier(finalBp ?? multiplierBp)}
-          </div>
-          {estPayout != null && (
-            <p style={{ fontSize: 18, marginTop: 16 }}>
-              Payout ≈ <b>{estPayout.toFixed(3)} {stakeSymbol}</b>{" "}
-              <span className="muted">(staked {stake}, settled on-chain)</span>
-            </p>
+          {isFree ? (
+            <>
+              <p className="muted">Nice run</p>
+              <div className="multiplier up">+{xpEarned ?? 0} XP</div>
+              <p style={{ fontSize: 18, marginTop: 16 }}>
+                {correctFinal != null && (
+                  <>
+                    <b>{correctFinal}</b> / {questions} correct
+                    {totalXp != null && (
+                      <>
+                        {" · "}
+                        <span className="muted">{totalXp} XP total</span>
+                      </>
+                    )}
+                  </>
+                )}
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="muted">Final multiplier</p>
+              <div className={`multiplier ${up ? "up" : "down"}`}>
+                {formatMultiplier(finalBp ?? multiplierBp)}
+              </div>
+              {estPayout != null && (
+                <p style={{ fontSize: 18, marginTop: 16 }}>
+                  Payout ≈ <b>{estPayout.toFixed(3)} {stakeSymbol}</b>{" "}
+                  <span className="muted">(staked {stake}, settled on-chain)</span>
+                </p>
+              )}
+            </>
           )}
           <div className="row center" style={{ justifyContent: "center", gap: 12, marginTop: 24 }}>
             <button className="btn" onClick={() => router.replace("/games")}>
@@ -528,6 +640,9 @@ export default function PlayPage() {
                 setSessionId(null);
                 setCorrectSoFar(0);
                 setAnswered(0);
+                setXpEarned(null);
+                setTotalXp(null);
+                setCorrectFinal(null);
               }}
             >
               Play again

@@ -34,6 +34,15 @@ export function BottomNav() {
         <span>Tournament</span>
       </button>
       <button
+        className={isActive("/leaderboard") ? "active" : ""}
+        onClick={() => router.push("/leaderboard")}
+        aria-label="Leaderboard"
+        aria-current={isActive("/leaderboard") ? "page" : undefined}
+      >
+        🏅
+        <span>Ranks</span>
+      </button>
+      <button
         className={pathname.startsWith("/profile") ? "active" : ""}
         onClick={() => router.push(address ? `/profile/${address}` : "/games")}
         aria-label="Your profile"

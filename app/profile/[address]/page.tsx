@@ -5,12 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import { ConnectControl } from "../../../components/ConnectControl";
 import { useAccount } from "wagmi";
 import { BottomNav } from "../../../components/BottomNav";
+import { useAppConfig } from "../../../lib/config";
 
 interface UserProfile {
   address: string;
   username: string | null;
   avatar: string | null;
   unit?: string;
+  xp?: number;
   stats: {
     totalGamesPlayed: number;
     totalGamesWon: number;
@@ -31,6 +33,8 @@ export default function ProfilePage() {
   const router = useRouter();
   const { address: connectedAddress } = useAccount();
   const profileAddress = params.address as string;
+  const config = useAppConfig();
+  const isFree = config?.playMode === "free";
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -205,14 +209,27 @@ export default function ProfilePage() {
 
         {/* Stats Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: 40 }}>
-          <StatCard icon="🎮" label="Games Played" value={profile.stats.totalGamesPlayed} />
-          <StatCard icon="🏆" label="Games Won" value={profile.stats.totalGamesWon} />
-          <StatCard icon="📈" label="Win Rate" value={`${winRate}%`} />
-          <StatCard icon="💰" label="Total Winnings" value={`${profile.stats.totalWinnings} ${unit}`} />
-          <StatCard icon="📊" label="Net Profit" value={`${netProfit > 0 ? '+' : ''}${netProfit} ${unit}`} color={netProfit > 0 ? 'var(--green)' : 'var(--red)'} />
-          <StatCard icon="🚀" label="Highest Multiplier" value={`${(profile.stats.highestMultiplier / 10000).toFixed(1)}x`} />
-          <StatCard icon="🔥" label="Current Streak" value={profile.stats.currentStreak} />
-          <StatCard icon="⭐" label="Longest Streak" value={profile.stats.longestStreak} />
+          {isFree ? (
+            <>
+              <StatCard icon="⚡" label="XP" value={profile.xp ?? 0} color="var(--accent)" />
+              <StatCard icon="🎮" label="Games Played" value={profile.stats.totalGamesPlayed} />
+              <StatCard icon="🏆" label="Rounds Cleared" value={profile.stats.totalGamesWon} />
+              <StatCard icon="📈" label="Clear Rate" value={`${winRate}%`} />
+              <StatCard icon="🔥" label="Current Streak" value={profile.stats.currentStreak} />
+              <StatCard icon="⭐" label="Longest Streak" value={profile.stats.longestStreak} />
+            </>
+          ) : (
+            <>
+              <StatCard icon="🎮" label="Games Played" value={profile.stats.totalGamesPlayed} />
+              <StatCard icon="🏆" label="Games Won" value={profile.stats.totalGamesWon} />
+              <StatCard icon="📈" label="Win Rate" value={`${winRate}%`} />
+              <StatCard icon="💰" label="Total Winnings" value={`${profile.stats.totalWinnings} ${unit}`} />
+              <StatCard icon="📊" label="Net Profit" value={`${netProfit > 0 ? '+' : ''}${netProfit} ${unit}`} color={netProfit > 0 ? 'var(--green)' : 'var(--red)'} />
+              <StatCard icon="🚀" label="Highest Multiplier" value={`${(profile.stats.highestMultiplier / 10000).toFixed(1)}x`} />
+              <StatCard icon="🔥" label="Current Streak" value={profile.stats.currentStreak} />
+              <StatCard icon="⭐" label="Longest Streak" value={profile.stats.longestStreak} />
+            </>
+          )}
         </div>
 
         {/* Achievements */}

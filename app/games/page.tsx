@@ -8,6 +8,7 @@ import { GameIcon } from "../../components/GameIcons";
 import { TutorialModal } from "../../components/TutorialModal";
 import { SocialLinks } from "../../components/SocialLinks";
 import { BottomNav } from "../../components/BottomNav";
+import { useAppConfig } from "../../lib/config";
 
 interface GameMeta {
   id: string;
@@ -21,6 +22,8 @@ interface GameMeta {
 export default function GamesPage() {
   const router = useRouter();
   const { address } = useAccount();
+  const config = useAppConfig();
+  const isFree = config?.playMode === "free";
   const [games, setGames] = useState<GameMeta[]>([]);
   const [showTutorial, setShowTutorial] = useState(false);
   // Ranked (the weekly pooled mode) is built but not open to players yet, so the toggle shows a
@@ -67,18 +70,38 @@ export default function GamesPage() {
       </div>
 
       <div className="hero">
-        <h1>Stake. Play. Win.</h1>
-        <p className="tagline">
-          An on-chain arcade. Each game is one round of 12 questions — answer 9 or more to win, 4 or
-          fewer to lose, anything between keeps your stake. Cash out at stake × multiplier.
-        </p>
-        <div className="mechanic">
-          <span className="up">9+ correct → ×1.1–1.4</span>
-          <span>·</span>
-          <span>5–8 → ×1.0</span>
-          <span>·</span>
-          <span className="down">4 or fewer → ×0.9–0.5</span>
-        </div>
+        {isFree ? (
+          <>
+            <h1>Play. Answer. Earn XP.</h1>
+            <p className="tagline">
+              An on-chain arcade. Each game is one round of 12 hard questions. Every correct answer
+              earns XP and finishing the round earns a completion bonus. Free to play — climb the XP
+              leaderboard.
+            </p>
+            <div className="mechanic">
+              <span className="up">Every correct → +XP</span>
+              <span>·</span>
+              <span>Finish the round → bonus XP</span>
+              <span>·</span>
+              <span>Free · no stake</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <h1>Stake. Play. Win.</h1>
+            <p className="tagline">
+              An on-chain arcade. Each game is one round of 12 questions — answer 9 or more to win, 4 or
+              fewer to lose, anything between keeps your stake. Cash out at stake × multiplier.
+            </p>
+            <div className="mechanic">
+              <span className="up">9+ correct → ×1.1–1.4</span>
+              <span>·</span>
+              <span>5–8 → ×1.0</span>
+              <span>·</span>
+              <span className="down">4 or fewer → ×0.9–0.5</span>
+            </div>
+          </>
+        )}
       </div>
 
       <div className="mode-switch">
@@ -93,7 +116,11 @@ export default function GamesPage() {
         >
           <span className="mode-name">Casual</span>
           <span className="badge live">Live</span>
-          <span className="mode-blurb">Play now, win now. Stake per game, settle instantly.</span>
+          <span className="mode-blurb">
+            {isFree
+              ? "Play now, earn XP now. One round per game, no stake."
+              : "Play now, win now. Stake per game, settle instantly."}
+          </span>
         </button>
         <button
           className="mode-option"
@@ -106,7 +133,11 @@ export default function GamesPage() {
         >
           <span className="mode-name">Ranked</span>
           <span className="badge soon">Coming soon</span>
-          <span className="mode-blurb">One weekly buy-in, a shared pot, and a leaderboard payout.</span>
+          <span className="mode-blurb">
+            {isFree
+              ? "A weekly competitive mode with its own leaderboard."
+              : "One weekly buy-in, a shared pot, and a leaderboard payout."}
+          </span>
         </button>
       </div>
 
@@ -114,8 +145,9 @@ export default function GamesPage() {
         <div className="panel center" style={{ marginBottom: 32 }}>
           <h2 style={{ marginBottom: 12 }}>Ranked is coming soon</h2>
           <p className="muted" style={{ maxWidth: 460, marginInline: "auto" }}>
-            Ranked is the weekly mode: one buy-in, play through the week, and the pot is shared out
-            by the leaderboard at the weekend. It is not open yet — pick Casual to play now.
+            {isFree
+              ? "Ranked is the weekly competitive mode: play through the week and climb a dedicated leaderboard. It is not open yet — pick Casual to play now."
+              : "Ranked is the weekly mode: one buy-in, play through the week, and the pot is shared out by the leaderboard at the weekend. It is not open yet — pick Casual to play now."}
           </p>
           <button
             className="btn"

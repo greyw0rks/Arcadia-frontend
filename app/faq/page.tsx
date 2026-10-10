@@ -3,12 +3,66 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ConnectControl } from "../../components/ConnectControl";
+import { useAppConfig } from "../../lib/config";
 
 export default function FAQPage() {
   const router = useRouter();
+  const config = useAppConfig();
+  const isFree = config?.playMode === "free";
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  const faqs = [
+  const freeFaqs = [
+    {
+      question: "What is Arcadia?",
+      answer: "Arcadia is an on-chain arcade of skill-based games. Each game is one round of 12 questions — answer correctly to earn XP. It's free to play: connect your wallet, play, and climb the XP leaderboard.",
+    },
+    {
+      question: "How do I earn XP?",
+      answer: "Every question you answer correctly earns XP, and finishing a round earns a completion bonus on top. The more you get right, the more XP you earn. XP is tracked per wallet and shown on your profile and the leaderboard.",
+    },
+    {
+      question: "Does it cost anything to play?",
+      answer: "No. Arcadia is currently free to play — there's no stake, no entry fee, and nothing to lose. Just connect your wallet and start playing.",
+    },
+    {
+      question: "Why do I need to connect a wallet?",
+      answer: "Your wallet is your identity on the leaderboard — it's how your XP is tracked across sessions. You never pay anything and you always control your funds; connecting just signs you in.",
+    },
+    {
+      question: "What is the XP leaderboard?",
+      answer: "The leaderboard ranks players by total XP earned. Keep playing and answering correctly to climb the ranks. You can see your own rank and everyone else's from the Ranks tab.",
+    },
+    {
+      question: "Which games are available?",
+      answer: "We have 13 games: Trivia Rush, GeoGuess, True/False Blitz, Odd One Out, Emoji Puzzle, Riddle Me This, Capital Quiz, Math Sprint, Name That Landmark, Logo Quiz, Movie Stills, and Hex Match, with Letter League coming soon. More on the way!",
+    },
+    {
+      question: "How long do I have to answer?",
+      answer: "Most games give you 15-20 seconds per question. If time runs out, it counts as a wrong answer. Stay focused!",
+    },
+    {
+      question: "Can I play on mobile?",
+      answer: "Yes! Arcadia is fully responsive and works great on mobile devices. The 2-column grid layout makes it easy to browse games on your phone.",
+    },
+    {
+      question: "Is my wallet safe?",
+      answer: "Yes. We use RainbowKit for secure wallet connections. You always control your funds — we never have access to your private keys, and free play never asks you to spend anything.",
+    },
+    {
+      question: "What blockchain is this on?",
+      answer: "Arcadia runs on Celo — an OP Stack L2 with ~1-second blocks and ultra-low fees.",
+    },
+    {
+      question: "How are answers verified?",
+      answer: "Answers are scored server-side by a trusted backend. The correct answer never reaches your browser, preventing cheating and keeping the leaderboard fair.",
+    },
+    {
+      question: "Is Arcadia open source? Can I copy it?",
+      answer: "No. Arcadia is proprietary software. The source code, game mechanics, question banks, scoring engine, and all creative works are copyright © greyw0rks. Copying, cloning, forking for deployment, or building competing products based on Arcadia's design is strictly prohibited. See our Terms & IP page for full details.",
+    },
+  ];
+
+  const stakeFaqs = [
     {
       question: "What is Arcadia?",
       answer: "Arcadia is an on-chain arcade where you stake USDm, USDC, or USDT on Celo on skill-based games. Each game is one round of 12 questions — answer enough correctly to win a higher payout. It's like a quiz show where you bet on yourself!",
@@ -86,6 +140,8 @@ export default function FAQPage() {
       answer: "Winnings are automatically sent to your wallet when you complete a game and settle on-chain. No withdrawal needed - it's instant!",
     },
   ];
+
+  const faqs = isFree ? freeFaqs : stakeFaqs;
 
   return (
     <div className="container">

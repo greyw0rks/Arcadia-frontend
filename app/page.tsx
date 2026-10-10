@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAppConfig } from "../lib/config";
 
 const LOCKED_CHAIN = process.env.NEXT_PUBLIC_CHAIN;
 const isLanding = !LOCKED_CHAIN || LOCKED_CHAIN === "landing";
@@ -55,10 +56,35 @@ const STEPS = [
   },
 ];
 
+const FREE_STEPS = [
+  {
+    n: "01",
+    title: "Connect your wallet",
+    body: "Link a Celo wallet — no sign-up, no email, no KYC.",
+  },
+  {
+    n: "02",
+    title: "Pick a game & play",
+    body: "Choose from 12 game modes. Every game is one round of 12 hard questions. Free to play.",
+  },
+  {
+    n: "03",
+    title: "Answer & earn XP",
+    body: "Every correct answer earns XP, and finishing a round earns a completion bonus. Climb the XP leaderboard.",
+  },
+];
+
 const STATS = [
   { value: "12", label: "Game modes" },
   { value: "Celo", label: "Chain" },
   { value: "100%", label: "On-chain payouts" },
+  { value: "0", label: "Sign-ups required" },
+];
+
+const FREE_STATS = [
+  { value: "12", label: "Game modes" },
+  { value: "Celo", label: "Chain" },
+  { value: "Free", label: "To play" },
   { value: "0", label: "Sign-ups required" },
 ];
 
@@ -67,6 +93,10 @@ const STATS = [
 // ---------------------------------------------------------------------------
 
 function LandingHub() {
+  const config = useAppConfig();
+  const isFree = config?.playMode !== "stake";
+  const steps = isFree ? FREE_STEPS : STEPS;
+  const stats = isFree ? FREE_STATS : STATS;
   return (
     <>
       <style>{`
@@ -357,11 +387,20 @@ function LandingHub() {
             <br />
             <span className="pink">arcade</span>
             <br />
-            <span className="arc">that pays</span>
+            <span className="arc">{isFree ? "you play" : "that pays"}</span>
           </h1>
           <p className="hero-sub">
-            Answer questions. Multiply your stake. <strong>Collect on-chain — instantly.</strong>{" "}
-            No house edge beyond the rake. The smarter you play, the more you earn.
+            {isFree ? (
+              <>
+                Answer questions. Earn XP. <strong>Climb the leaderboard.</strong>{" "}
+                13 game modes, all skill-based. The smarter you play, the higher you rank.
+              </>
+            ) : (
+              <>
+                Answer questions. Multiply your stake. <strong>Collect on-chain — instantly.</strong>{" "}
+                No house edge beyond the rake. The smarter you play, the more you earn.
+              </>
+            )}
           </p>
           <div className="hero-cta-row">
             <a href="https://celo.arcadia.uno" className="btn-primary">Start playing →</a>
@@ -406,7 +445,7 @@ function LandingHub() {
 
         {/* STATS */}
         <div className="stats">
-          {STATS.map(({ value, label }) => (
+          {stats.map(({ value, label }) => (
             <div key={label} className="stat">
               <div className="stat-val">{value}</div>
               <div className="stat-lbl">{label}</div>
@@ -420,7 +459,7 @@ function LandingHub() {
             <div className="section-tag">Now live</div>
             <h2 className="section-title">Play on Celo</h2>
             <p className="section-sub">
-              Fast, cheap transactions and dollar-stable tokens. Connect your wallet and start earning — no gas headaches.
+              Fast, cheap transactions and dollar-stable tokens. Connect your wallet and start {isFree ? "playing" : "earning"} — no gas headaches.
             </p>
             <div className="chains">
               {CHAINS.map(({ href, label, emoji, tokens, color, textColor, desc }) => (
@@ -452,10 +491,10 @@ function LandingHub() {
         <div style={{ background: "#fff", borderBottom: "4px solid #0F0F0F" }} id="how">
           <div className="section">
             <div className="section-tag">How it works</div>
-            <h2 className="section-title">Three steps to your payout</h2>
+            <h2 className="section-title">{isFree ? "Three steps to the top" : "Three steps to your payout"}</h2>
             <p className="section-sub">No accounts, no waiting, no middlemen. Just your wallet and your knowledge.</p>
             <div className="steps">
-              {STEPS.map(({ n, title, body }) => (
+              {steps.map(({ n, title, body }) => (
                 <div key={n} className="step">
                   <div className="step-num">{n}</div>
                   <div className="step-body">
@@ -472,8 +511,8 @@ function LandingHub() {
         <div style={{ background: "#F5F3FF", borderBottom: "4px solid #0F0F0F" }}>
           <div className="section">
             <div className="section-tag">Game modes</div>
-            <h2 className="section-title">12 ways to win</h2>
-            <p className="section-sub">Every game type has its own question bank. The harder you bet, the tougher the questions.</p>
+            <h2 className="section-title">{isFree ? "12 ways to play" : "12 ways to win"}</h2>
+            <p className="section-sub">{isFree ? "Every game type has its own question bank. Every question is hard." : "Every game type has its own question bank. The harder you bet, the tougher the questions."}</p>
             <div className="games">
               {GAMES.map(({ emoji, label, desc }) => (
                 <div key={label} className="game-card">
@@ -490,10 +529,15 @@ function LandingHub() {
         <div className="fair">
           <h2 className="fair-title">Provably <span>fair</span> &amp; transparent</h2>
           <p className="fair-body">
-            Sessions are opened on-chain before any questions are served. Payouts are signed by a trusted key and settled by your wallet — no custodian holds your funds. Every game result is verifiable on-chain.
+            {isFree
+              ? "Sessions are opened on-chain and answers are scored server-side so the correct answer never reaches your browser. Every game is skill-based and the leaderboard stays fair."
+              : "Sessions are opened on-chain before any questions are served. Payouts are signed by a trusted key and settled by your wallet — no custodian holds your funds. Every game result is verifiable on-chain."}
           </p>
           <div className="fair-pills">
-            {["On-chain sessions", "EIP-712 signed payouts", "Non-custodial", "Open source", "No rug possible"].map((p) => (
+            {(isFree
+              ? ["On-chain sessions", "Server-scored answers", "Non-custodial", "Skill-based", "Free to play"]
+              : ["On-chain sessions", "EIP-712 signed payouts", "Non-custodial", "Open source", "No rug possible"]
+            ).map((p) => (
               <span key={p} className="fair-pill">{p}</span>
             ))}
           </div>
